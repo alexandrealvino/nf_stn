@@ -12,7 +12,8 @@ type App struct {
 
 func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
 	var err error
-	a.Db, err = sql.Open(dbdriver, dbuser+":"+dbpass+"@tcp(127.0.0.1:3306)/"+dbname)
+	//a.Db, err = sql.Open(dbdriver, dbuser+":"+dbpass+"@tcp(127.0.0.1:3306)/"+dbname)
+	a.Db, err = sql.Open(dbdriver, CLEAR_DATABASE_URL)
 	if err != nil {
 		log.Fatal(err)
 	}

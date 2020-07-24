@@ -8,6 +8,7 @@ jobs:
       # specify the version
       - image: circleci/golang:1.14
       - image: circleci/mysql:8.0.4
+        --hostname db
         environment:
           MYSQL_DRIVER: mysql
           MYSQL_ROOT_PASSWORD: admin

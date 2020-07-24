@@ -37,6 +37,8 @@ func main() {
 	router.HandleFunc("/api/up/", adapter.UpdateInvoice).Methods("PUT")                          // update invoice
 	router.HandleFunc("/api/patch/", adapter.PatchInvoice).Methods("PATCH")                      // patch invoice
 
+	router.HandleFunc("/api/pagination", adapter.Pagination).Methods("GET")
+
 	router.Handle("/metrics", promhttp.Handler())				// get metrics
 
 	log.Fatal(http.ListenAndServe(":8000", router)) // if error return fatal log

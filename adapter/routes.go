@@ -228,3 +228,15 @@ func PatchInvoice(w http.ResponseWriter, r *http.Request) {
 }
 
 //
+func Pagination(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	var results []entities.Invoice
+	results, err := database.Pagination()
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}

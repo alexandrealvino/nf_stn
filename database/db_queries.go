@@ -21,7 +21,7 @@ var db config.App
 
 // init initializes the db connection
 func init() {
-	db.Initialize(config.DbDriver, config.DbUser, config.DbPass, config.DbName)
+	db.Initialize(config.Dbdriver, config.Dbuser, config.Dbpass, config.Dbname)
 }
 
 // GetAll gets all the rows of the invoices db
@@ -167,3 +167,26 @@ func ClearTable() {
 }
 
 //
+func Pagination() ([]entities.Invoice, error) {
+	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices LIMIT 0,10;")
+	if err != nil {
+		panic(err.Error())
+	}
+	inv := entities.Invoice{}
+	invoicesList := []entities.Invoice{}
+	for results.Next() {
+		err = results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
+		if err != nil {
+			panic(err.Error())
+		}
+		invoicesList = append(invoicesList, inv)
+	}
+	lines, _ := db.Db.Query("SELECT FOUND_ROWS();")
+	var total int
+	for lines.Next() {
+		_ = lines.Scan(&total)
+	}
+	fmt.Println("Successfuly got invoice list!")
+	fmt.Println(invoicesList,total)
+	return invoicesList, err
+}

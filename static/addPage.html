@@ -10,7 +10,6 @@
             <label for="document">Document:</label><br>
             <p><input type="text" id="document" required name="document" placeholder=" document..." ><br></p>
             <label for="description">Description:</label><br>
-{{/*            <input type="text" id="description" required name="description" placeholder=" description..."><br>*/}}
             <p><textarea rows="4" cols="50" required name="description" form="addInvoice" placeholder="document description..." maxlength="256"></textarea><br></p>
             <label for="referenceMonth">Reference Month:</label><br>
             <p><input type="number" id="referenceMonth" size="200" required name="referenceMonth" min="1" maxlength="2" max="12"   ><br></p>
@@ -22,10 +21,7 @@
             <p><input type="text" id="createdAt" required name="createdAt" placeholder=" created at..." ><br></p>
             <label for="deactivatedAt">Deactivated at:</label><br>
             <p><input type="text" id="deactivatedAt" required name="deactivatedAt" placeholder=" deactivated at..." ><br></p>
-{{/*            <label for="password">Password:</label><br>*/}}
-{{/*            <p><input type="password" id="password" required name="password" placeholder=" password..." ><br></p>*/}}
             <p><button type="submit" class="btn btn-dark btn-outline-primary" formaction="addPage" formmethod="POST">Add Invoice</button><br></p>
-{{/*            <button type="submit" class="btn btn-sm btn-outline-dark btn-outline-secondary" formaction="addticker" formmethod="DELETE">Sell share</button>*/}}
         </form>
         <form>
             <button type="submit" class="btn btn-dark btn-outline-primary" formaction="/api" formmethod="GET">Invoices</button>
@@ -44,8 +40,3 @@
         }
     }
 </script>
-
-{{/*<form action="api/addticker/{{.Title}}" method="POST">*/}}
-{{/*    <div><textarea name="Body" cols="80" rows="25">{{printf "%s" .Body}}</textarea></div>*/}}
-{{/*    <div><input type="submit" value="Save"></div>*/}}
-{{/*</form>*/}}

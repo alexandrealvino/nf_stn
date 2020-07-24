@@ -21,11 +21,11 @@ var db config.App
 
 // init initializes the db connection
 func init() {
-	db.Initialize(config.Dbdriver,config.Dbuser,config.Dbpass,config.Dbname)
+	db.Initialize(config.Dbdriver, config.Dbuser, config.Dbpass, config.Dbname)
 }
 
 // GetAll gets all the rows of the invoices db
-func GetAll() ([]entities.Invoice, error){  // get list of all invoices
+func GetAll() ([]entities.Invoice, error) { // get list of all invoices
 	results, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices ORDER BY id ASC")
 	if err != nil {
 		panic(err.Error())
@@ -44,7 +44,7 @@ func GetAll() ([]entities.Invoice, error){  // get list of all invoices
 }
 
 // GetInvoiceByDocument gets the invoice by the document value
-func GetInvoiceByDocument(document string) (entities.Invoice, error){  // get invoice by document
+func GetInvoiceByDocument(document string) (entities.Invoice, error) { // get invoice by document
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices WHERE document = ?;", document)
 	if err != nil {
 		panic(err.Error())
@@ -61,24 +61,24 @@ func GetInvoiceByDocument(document string) (entities.Invoice, error){  // get in
 }
 
 // GetAccountByProfile gets the account data by the given profile
-func GetAccountByProfile(profile string) (string, []byte, error){  // get acc data by profile
+func GetAccountByProfile(profile string) (string, []byte, error) { // get acc data by profile
 	result, err := db.Db.Query("SELECT profile, hash FROM hashes WHERE profile = ?;", profile)
 	if err != nil {
 		panic(err.Error())
 	}
 	var acc entities.Account
 	for result.Next() {
-		err = result.Scan(&acc.Profile,&acc.Hash)
+		err = result.Scan(&acc.Profile, &acc.Hash)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
 	fmt.Println("Successfuly got hash!")
-	return acc.Profile,acc.Hash, err
+	return acc.Profile, acc.Hash, err
 }
 
 // GetInvoiceByID gets the invoice by the given ID
-func GetInvoiceByID(id int) (entities.Invoice, error){  // get ticker by id
+func GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices WHERE id = ?", id)
 	if err != nil {
 		panic(err.Error())
@@ -90,14 +90,14 @@ func GetInvoiceByID(id int) (entities.Invoice, error){  // get ticker by id
 			panic(err.Error())
 		}
 	}
-	if (inv!= entities.Invoice{}) {
+	if (inv != entities.Invoice{}) {
 		fmt.Println("Successfuly got invoice!")
 	}
 	return inv, err
 }
 
 // InsertInvoice inserts the given invoice to invoices db
-func InsertInvoice(invoice entities.Invoice) error {  // insert invoice
+func InsertInvoice(invoice entities.Invoice) error { // insert invoice
 	//monthDay,month,hour,min,sec,year := time.Now().Day(),time.Now().Month(),time.Now().Hour(),time.Now().Minute(),time.Now().Second(),time.Now().Year()
 	//date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
 	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
@@ -113,8 +113,8 @@ func InsertInvoice(invoice entities.Invoice) error {  // insert invoice
 }
 
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
-func DeleteInvoice(id int) (error) { // set isActive = 0 for logic deletion
-	_, err := db.Db.Exec("UPDATE invoices SET isActive = ? WHERE id = ?;",0, id)
+func DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
+	_, err := db.Db.Exec("UPDATE invoices SET isActive = ? WHERE id = ?;", 0, id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -123,7 +123,7 @@ func DeleteInvoice(id int) (error) { // set isActive = 0 for logic deletion
 }
 
 // UpdateInvoice updates database values from the row of the given invoice
-func UpdateInvoice(invoice entities.Invoice) (error) {  // update invoice
+func UpdateInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
 	if err != nil {
 		panic(err.Error())
@@ -133,7 +133,7 @@ func UpdateInvoice(invoice entities.Invoice) (error) {  // update invoice
 }
 
 // PatchInvoice partially updates database values from the row of the given invoice
-func PatchInvoice(invoice entities.Invoice) (error) {  // update invoice
+func PatchInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
 	if err != nil {
 		panic(err.Error())
@@ -143,7 +143,7 @@ func PatchInvoice(invoice entities.Invoice) (error) {  // update invoice
 }
 
 // InvoiceExists checks if the given invoice document exists
-func InvoiceExists(document string) (entities.Invoice, error){  // checks if invoice is already exists
+func InvoiceExists(document string) (entities.Invoice, error) { // checks if invoice is already exists
 	result, err := db.Db.Query("SELECT id FROM invoices WHERE document = ?", document)
 	if err != nil {
 		panic(err.Error())
@@ -163,6 +163,7 @@ func InvoiceExists(document string) (entities.Invoice, error){  // checks if inv
 
 // ClearTable truncates the invoices table
 func ClearTable() {
-	_,_ = db.Db.Exec("TRUNCATE TABLE invoices")
+	_, _ = db.Db.Exec("TRUNCATE TABLE invoices")
 }
+
 //

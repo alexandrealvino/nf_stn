@@ -5,7 +5,6 @@ import (
 	"log"
 )
 
-
 // HashAndSalt uses GenerateFromPassword to hash & salt pwd.
 // MinCost is just an integer constant provided by the bcrypt
 // package along with DefaultCost & MaxCost.

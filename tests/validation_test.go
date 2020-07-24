@@ -9,6 +9,7 @@ import (
 	"nf_stn/database"
 	"testing"
 )
+
 //
 func TestInsertInvoice(t *testing.T) {
 	database.ClearTable()
@@ -151,4 +152,3 @@ func TestDeleteInvoice(t *testing.T) {
 	}
 } // tests the /api/del/ endpoint
 //
-

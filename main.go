@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"nf_stn/adapter"
@@ -35,6 +36,8 @@ func main() {
 	router.HandleFunc("/api/del/", adapter.DeleteInvoice).Methods("DELETE")                      // set isActive = 0 for logic deletion
 	router.HandleFunc("/api/up/", adapter.UpdateInvoice).Methods("PUT")                          // update invoice
 	router.HandleFunc("/api/patch/", adapter.PatchInvoice).Methods("PATCH")                      // patch invoice
+
+	router.Handle("/metrics", promhttp.Handler())				// get metrics
 
 	log.Fatal(http.ListenAndServe(":8000", router)) // if error return fatal log
 }

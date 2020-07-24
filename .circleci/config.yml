@@ -7,6 +7,12 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.14
+      - image: circleci/mysql:8.0.4
+        environment:
+          MYSQL_ROOT_PASSWORD: admin
+          MYSQL_DATABASE: nf_stn
+          MYSQL_USER: root
+          MYSQL_PASSWORD: admin
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images

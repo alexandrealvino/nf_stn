@@ -4,6 +4,7 @@ package config
 //var dbName = os.Getenv("MYSQL_DATABASE")
 //var dbUser = os.Getenv("MYSQL_USER")
 //var dbPass = os.Getenv("MYSQL_PASSWORD")
+//var dbRootPwd = os.Getenv("MYSQL_ROOT_PASSWORD")
 //
 
 // Dbdriver is the driver name

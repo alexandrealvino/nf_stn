@@ -6,9 +6,9 @@ ENV MYSQL_DRIVER mysql
 ENV MYSQL_USER root
 ENV MYSQL_PASSWORD admin
 ENV MYSQL_ROOT_PASSWORD admin
-ENV MYSQL_DATABASE api_go
+ENV MYSQL_DATABASE nf_stn
 
-ADD database/schema-apigo.sql /docker-entrypoint-initdb.d
+ADD database/schema.sql /docker-entrypoint-initdb.d
 
 # Copy and download dependency using go mod
 COPY go.mod .

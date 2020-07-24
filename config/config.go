@@ -14,8 +14,8 @@ type App struct {
 // Initialize initiates the db connection
 func (a *App) Initialize(Dbdriver, Dbuser, Dbpass, Dbname string) {
 	var err error
-	//a.Db, err = sql.Open(Dbdriver, Dbuser+":"+Dbpass+"@tcp(127.0.0.1:3306)/"+Dbname)
-	a.Db, err = sql.Open("mysql", "root"+":"+"admin"+"@tcp(127.0.0.1:3306)/"+"nf_stn")
+	a.Db, err = sql.Open(Dbdriver, Dbuser+":"+Dbpass+"@tcp(127.0.0.1:3306)/"+Dbname)
+	//a.Db, err = sql.Open("mysql", "root"+":"+"admin"+"@tcp(127.0.0.1:3306)/"+"nf_stn")
 	//a.Db, err = sql.Open(dbdriver, CLEAR_DATABASE_URL)
 	if err != nil {
 		log.Fatal(err)

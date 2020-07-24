@@ -22,7 +22,6 @@ func TestInsertInvoice(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(adapter.InsertInvoice)
 	handler.ServeHTTP(rr, req)
-	//rr.WriteHeader(http.StatusCreated)
 	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusCreated)
@@ -53,7 +52,6 @@ func TestGetAll(t *testing.T) {
 			status, http.StatusOK)
 	}
 	// Check the response body is what we expect.
-	//expected := `[{"id":1,"referenceMonth":1,"referenceYear":2020,"document":"00000000000011","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"},{"id":2,"referenceMonth":1,"referenceYear":2020,"document":"00000000000012","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"},{"id":3,"referenceMonth":1,"referenceYear":2020,"document":"00000000000013","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"},{"id":4,"referenceMonth":1,"referenceYear":2020,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"}]`
 	expected := `[{"id":1,"referenceMonth":1,"referenceYear":2020,"document":"00000000000011","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"}]`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
@@ -61,7 +59,6 @@ func TestGetAll(t *testing.T) {
 		t.Fatal(err)
 	}
 	_ = json.Unmarshal(rr.Body.Bytes(), buffer)
-	//print(buffer.String())
 	if buffer.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)

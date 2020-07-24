@@ -11,19 +11,19 @@
             <p><input type="text" id="document" required name="document" placeholder=" document..." ><br></p>
             <label for="description">Description:</label><br>
 {{/*            <input type="text" id="description" required name="description" placeholder=" description..."><br>*/}}
-            <p><textarea rows="4" cols="50" required name="description" form="addInvoice" placeholder="document description..."></textarea><br></p>
+            <p><textarea rows="4" cols="50" required name="description" form="addInvoice" placeholder="document description..." maxlength="256"></textarea><br></p>
             <label for="referenceMonth">Reference Month:</label><br>
-            <p><input type="number" id="referenceMonth" size="200" required name="referenceMonth" min="0" placeholder=" reference month..." max="999999999999999999" ><br></p>
+            <p><input type="number" id="referenceMonth" size="200" required name="referenceMonth" min="1" maxlength="2" max="12"   ><br></p>
             <label for="referenceYear">Reference Year:</label><br>
-            <p><input type="number" id="referenceYear" size="200" required name="referenceYear" min="0" placeholder=" reference year..." max="999999999999999999" ><br></p>
-            <label for="amount">Amount:</label><br>
+            <p><input type="number" id="referenceYear" size="200" required name="referenceYear" min="2020" max="9999" ><br></p>
+            <label for="amount">Amount in R$:</label><br>
             <p><input type="number" id="amount" required name="amount" min="0" step="0.01" placeholder=" amount..." max="999999999999999"><br></p>
             <label for="createdAt">Created at:</label><br>
             <p><input type="text" id="createdAt" required name="createdAt" placeholder=" created at..." ><br></p>
             <label for="deactivatedAt">Deactivated at:</label><br>
             <p><input type="text" id="deactivatedAt" required name="deactivatedAt" placeholder=" deactivated at..." ><br></p>
-            <label for="password">Password:</label><br>
-            <p><input type="password" id="password" required name="password" placeholder=" password..." ><br></p>
+{{/*            <label for="password">Password:</label><br>*/}}
+{{/*            <p><input type="password" id="password" required name="password" placeholder=" password..." ><br></p>*/}}
             <p><button type="submit" class="btn btn-dark btn-outline-primary" formaction="addPage" formmethod="POST">Add Invoice</button><br></p>
 {{/*            <button type="submit" class="btn btn-sm btn-outline-dark btn-outline-secondary" formaction="addticker" formmethod="DELETE">Sell share</button>*/}}
         </form>

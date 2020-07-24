@@ -1,5 +1,7 @@
 package entities
 
+
+// Invoice class for data storage
 type Invoice struct {
 	ID     int `json:"id"`
 	ReferenceMonth int `json:"referenceMonth"`

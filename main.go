@@ -14,14 +14,8 @@ func main() {
 
 	router := mux.NewRouter()  // init router
 	log.Println("Server started on: http://localhost:8000")
-	//year, month, day := time.Now().Date()
-	//hour, min, sec :=  time.Now().Clock()
-	monthDay := time.Now().Day()
-	month := time.Now().Month()
-	hour := time.Now().Hour()
-	min := time.Now().Minute()
-	sec := time.Now().Second()
-	year := time.Now().Year()
+
+	monthDay,month,hour,min,sec,year := time.Now().Day(),time.Now().Month(),time.Now().Hour(),time.Now().Minute(),time.Now().Second(),time.Now().Year()
 	date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
 	clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
 	now := date + " " + clock
@@ -29,6 +23,8 @@ func main() {
 
 	// router handlers
 
+	router.HandleFunc("/login", adapter.LoginT).Methods("GET") // render login.html
+	router.HandleFunc("/login", adapter.Login).Methods("POST") // try to login and redirects to index.html if true
 	router.HandleFunc("/api", adapter.GetIndexT).Methods("GET") // render index.html
 	router.HandleFunc("/api/addPage", adapter.AddPageT).Methods("GET") // render addPage.html
 	router.HandleFunc("/api/addPage", adapter.AddInvoice).Methods("POST") // insert invoice from addPage.html

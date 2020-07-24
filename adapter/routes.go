@@ -12,9 +12,12 @@ import (
 	"strconv"
 )
 
-
-func GetIndexT(w http.ResponseWriter, r *http.Request) { // render "wallet" template
+// GetIndexT gets the list of all invoices in the database
+// and renders the index.html with a table containing
+// the results from the GET method
+func GetIndexT(w http.ResponseWriter, r *http.Request) { // render index.html
 	var results []entities.Invoice
+	//var profile string
 	results, err := database.GetAll()
 	if err != nil {	panic(err.Error())}
 	tmpl, _ := template.ParseFiles("static/index.html")
@@ -22,9 +25,42 @@ func GetIndexT(w http.ResponseWriter, r *http.Request) { // render "wallet" temp
 	if err != nil {
 		panic(err.Error())
 	}
-} // render "wallet" template
-//
-func AddPageT(w http.ResponseWriter, r *http.Request) { // execute "addticker" template
+}
+
+// LoginT renders the login.html page
+func LoginT(w http.ResponseWriter, r *http.Request) {
+	tmpl, _ := template.ParseFiles("static/login.html")
+	var dummy string
+	err := tmpl.Execute(w,dummy)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+// Login verifies the given account information, compares the profile
+// and the respective hash of the password with the stored accounts data in database
+// and redirects to index.html if true
+func Login(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error()) // Handle error here via logging and then return
+	}
+	var acc entities.Account
+	acc.Profile = r.PostFormValue("user")
+	password := r.PostFormValue("password")
+	profile,hash, _ := database.GetAccountByProfile(acc.Profile)
+	hashStr := string(hash)
+	bl := src.ComparePasswords(hashStr,password)
+	if (bl == true) && (acc.Profile == profile) {
+		defer GetIndexT(w,r)
+	} else {
+		fmt.Println("password invalid!")
+		defer LoginT(w,r)
+	}
+}
+
+// AddPageT renders the addPage.html with the form for insert invoice to database
+func AddPageT(w http.ResponseWriter, r *http.Request) {
 	_, _ = ioutil.ReadAll(r.Body)
 	Title := "New Invoice"
 	tmpl, _ := template.ParseFiles("static/addPage.html")
@@ -32,9 +68,11 @@ func AddPageT(w http.ResponseWriter, r *http.Request) { // execute "addticker" t
 	if err != nil {
 		panic(err.Error())
 	}
-} // render addPage.html
-//
-func AddInvoice(w http.ResponseWriter, r *http.Request) { // add stock buy to the "buys" table in database
+}
+
+// AddInvoice collect data from the form in addPage.html and calls
+// database.InsertInvoice to insert the invoice to the database
+func AddInvoice(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err.Error()) // Handle error here via logging and then return
@@ -47,22 +85,11 @@ func AddInvoice(w http.ResponseWriter, r *http.Request) { // add stock buy to th
 	inv.DeactivatedAt = r.PostFormValue("deactivatedAt")
 	inv.ReferenceMonth, _ = strconv.Atoi(r.PostFormValue("referenceMonth"))
 	inv.ReferenceYear, _ = strconv.Atoi(r.PostFormValue("referenceYear"))
-	password := r.PostFormValue("password")
-	hash, _ := database.GetHashByProfile("admin")
-	hashStr := string(hash)
-	bl := src.ComparePasswords(hashStr,password)
-	fmt.Println(password,hashStr)
-	if bl == true {
-		_ = database.InsertInvoice(inv)
-		defer AddPageT(w,r)
-	} else {
-		fmt.Println("password invalid!")
-		defer AddPageT(w,r)
-	}
-	//AddPageT(w,r)
-} // add stock buy to the "buys" table in database
-//
-//
+	_ = database.InsertInvoice(inv)
+	AddPageT(w,r)
+}
+
+// GetAll gets all invoices and returns in json format
 func GetAll(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	var results []entities.Invoice
 	results, err := database.GetAll()
@@ -71,10 +98,10 @@ func GetAll(w http.ResponseWriter, r *http.Request) { // get invoices and return
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
-	fmt.Println(results)
-} // get wallet in json format
-//
-func GetInvoiceByDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+}
+
+// GetInvoiceByDocument gets invoice by document value and returns the invoice in json format
+func GetInvoiceByDocument(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -89,10 +116,10 @@ func GetInvoiceByDocument(w http.ResponseWriter, r *http.Request) { // get invoi
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(result)
-	//json.NewEncoder(w).Encode(results)
-} // get wallet in json format
-//
-func InsertInvoice(w http.ResponseWriter, r *http.Request) { // insert invoice
+}
+
+// InsertInvoice inserts the given invoice data in the database
+func InsertInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -109,9 +136,10 @@ func InsertInvoice(w http.ResponseWriter, r *http.Request) { // insert invoice
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(invoice)
-} // insert invoice
-//
-func DeleteInvoice(w http.ResponseWriter, r *http.Request) {  // delete invoice
+}
+
+// DeleteInvoice makes the logic deletion of the invoice by the given ID in the database
+func DeleteInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -119,7 +147,7 @@ func DeleteInvoice(w http.ResponseWriter, r *http.Request) {  // delete invoice
 	}
 	var invoice entities.Invoice  // Unmarshal
 	err = json.Unmarshal(b, &invoice)
-	idNotInList, err := database.GetInvoiceById(invoice.ID)
+	idNotInList, err := database.GetInvoiceByID(invoice.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -137,9 +165,10 @@ func DeleteInvoice(w http.ResponseWriter, r *http.Request) {  // delete invoice
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(invoice.ID)
-} // delete invoice
-//
-func UpdateInvoice(w http.ResponseWriter, r *http.Request) {  // update invoice
+}
+
+// UpdateInvoice updates database values from the row of the given invoice
+func UpdateInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -165,9 +194,10 @@ func UpdateInvoice(w http.ResponseWriter, r *http.Request) {  // update invoice
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(invoice)
-} // update invoice
-//
-func PatchInvoice(w http.ResponseWriter, r *http.Request) {  // partial updates invoice
+}
+
+// PatchInvoice partially updates database values from the row of the given invoice
+func PatchInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -177,11 +207,11 @@ func PatchInvoice(w http.ResponseWriter, r *http.Request) {  // partial updates 
 	_ = json.Unmarshal(b, &invoice) // Unmarshal
 	err = database.PatchInvoice(invoice)
 	if err != nil {	panic(err.Error())}
-	editedInvoice, err = database.GetInvoiceById(invoice.ID)
+	editedInvoice, err = database.GetInvoiceByID(invoice.ID)
 	if err != nil {	panic(err.Error())}
 	w.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(editedInvoice)
-} // partial updates invoice
+}
 //

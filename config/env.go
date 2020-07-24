@@ -1,23 +1,25 @@
 package config
 
-//var dbDriver = os.Getenv("MYSQL_DRIVER")
-//var dbName = os.Getenv("MYSQL_DATABASE")
-//var dbUser = os.Getenv("MYSQL_USER")
-//var dbPass = os.Getenv("MYSQL_PASSWORD")
-//var dbRootPwd = os.Getenv("MYSQL_ROOT_PASSWORD")
+import "os"
+
+var DbDriver = os.Getenv("MYSQL_DRIVER")
+var DbName = os.Getenv("MYSQL_DATABASE")
+var DbUser = os.Getenv("MYSQL_USER")
+var DbPass = os.Getenv("MYSQL_PASSWORD")
+var DbRootPwd = os.Getenv("MYSQL_ROOT_PASSWORD")
 //
 
 // Dbdriver is the driver name
-var Dbdriver = "mysql"
+//var Dbdriver = "mysql"
 
 // Dbuser is the username for the db connection
-var Dbuser = "root"
+//var Dbuser = "root"
 
 // Dbpass is the password for the db connection
-var Dbpass = "admin"
+//var Dbpass = "admin"
 
 // Dbname is the db name
-var Dbname = "nf_stn"
+//var Dbname = "nf_stn"
 
 //var port = os.Getenv("PORT")
 //var dns = os.Getenv("DATABASE_URL")

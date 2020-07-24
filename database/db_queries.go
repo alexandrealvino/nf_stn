@@ -21,7 +21,7 @@ var db config.App
 
 // init initializes the db connection
 func init() {
-	db.Initialize(config.Dbdriver, config.Dbuser, config.Dbpass, config.Dbname)
+	db.Initialize(config.DbDriver, config.DbUser, config.DbPass, config.DbName)
 }
 
 // GetAll gets all the rows of the invoices db

@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 //var DbDriver = os.Getenv("MYSQL_DRIVER")
 //var DbName = os.Getenv("MYSQL_DATABASE")
 //var DbUser = os.Getenv("MYSQL_USER")
@@ -7,17 +9,41 @@ package config
 //var DbRootPwd = os.Getenv("MYSQL_ROOT_PASSWORD")
 ////
 
-//Dbdriver is the driver name
-var Dbdriver = "mysql"
+type DataBaseConfig interface {
+	Dbdriver() string
+	Dbuser() string
+	Dbpass() string
+	Dbname() string
+}
 
-//Dbuser is the username for the db connection
-var Dbuser = "root"
+type Config struct {}
 
-//Dbpass is the password for the db connection
-var Dbpass = "admin"
+func (c *Config) Dbdriver() string {
+	return os.Getenv("MYSQL_DRIVER")
+}
 
-//Dbname is the db name
-var Dbname = "nf_stn"
+func (c *Config) Dbuser() string {
+	return os.Getenv("MYSQL_USER")
+}
+
+func (c *Config) Dbpass() string {
+	return os.Getenv("MYSQL_PASSWORD")
+}
+func (c *Config) Dbname() string {
+	return os.Getenv("MYSQL_DATABASE")
+}
+
+////Dbdriver is the driver name
+//var Dbdriver = "mysql"
+//
+////Dbuser is the username for the db connection
+//var Dbuser = "root"
+//
+////Dbpass is the password for the db connection
+//var Dbpass = "admin"
+//
+////Dbname is the db name
+//var Dbname = "nf_stn"
 
 //var port = os.Getenv("PORT")
 //var dns = os.Getenv("DATABASE_URL")

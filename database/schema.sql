@@ -1,6 +1,6 @@
-create database api_go;
+create database nf_stn;
 
-use api_go;
+use nf_stn;
 
 create table invoices
 (

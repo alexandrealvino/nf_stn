@@ -173,3 +173,111 @@ func (rr *Routes) Pagination(w http.ResponseWriter, r *http.Request) { // get in
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
+
+//
+func (rr *Routes) PaginationOrderByMonth(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	params := mux.Vars(r)
+	offset, err := strconv.Atoi(params["offset"])
+	fmt.Println(offset)
+	var total int
+	results, err := rr.Db.PaginationOrderByMonth(offset)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Println(total)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}
+
+//
+func (rr *Routes) PaginationOrderByYear(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	params := mux.Vars(r)
+	offset, err := strconv.Atoi(params["offset"])
+	fmt.Println(offset)
+	var total int
+	results, err := rr.Db.PaginationOrderByYear(offset)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Println(total)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}
+
+//
+func (rr *Routes) PaginationOrderByDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	params := mux.Vars(r)
+	offset, err := strconv.Atoi(params["offset"])
+	fmt.Println(offset)
+	var total int
+	results, err := rr.Db.PaginationOrderByDocument(offset)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Println(total)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}
+
+//
+func (rr *Routes) PaginationByMonth(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	params := mux.Vars(r)
+	offset, err := strconv.Atoi(params["offset"])
+	referenceMonth, err := strconv.Atoi(params["referenceMonth"])
+	var total int
+	results, err := rr.Db.PaginationByMonth(offset,referenceMonth)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Println(total)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}
+
+//
+func (rr *Routes) PaginationByYear(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	params := mux.Vars(r)
+	offset, err := strconv.Atoi(params["offset"])
+	referenceYear, err := strconv.Atoi(params["referenceYear"])
+	var total int
+	results, err := rr.Db.PaginationByYear(offset,referenceYear)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Println(total)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}
+
+//
+func (rr *Routes) PaginationByDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	params := mux.Vars(r)
+	offset, err := strconv.Atoi(params["offset"])
+	document := params["document"]
+	fmt.Println(document)
+	results, err := rr.Db.PaginationByDocument(offset,document)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.Header().Add("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}
+

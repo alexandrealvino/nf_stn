@@ -43,6 +43,12 @@ func main() {
 	router.HandleFunc("/api/up/", routes.UpdateInvoice).Methods("PUT")                          // update invoice
 	router.HandleFunc("/api/patch/", routes.PatchInvoice).Methods("PATCH")                      // patch invoice
 	router.HandleFunc("/api/pagination/{offset}", routes.Pagination).Methods("GET")
+	router.HandleFunc("/api/pagination/{offset}/month", routes.PaginationOrderByMonth).Methods("GET")
+	router.HandleFunc("/api/pagination/{offset}/year", routes.PaginationOrderByYear).Methods("GET")
+	router.HandleFunc("/api/pagination/{offset}/document", routes.PaginationOrderByDocument).Methods("GET")
+	router.HandleFunc("/api/pagination/{offset}/month/{referenceMonth}", routes.PaginationByMonth).Methods("GET")
+	router.HandleFunc("/api/pagination/{offset}/year/{referenceYear}", routes.PaginationByYear).Methods("GET")
+	router.HandleFunc("/api/pagination/{offset}/document/{document}", routes.PaginationByDocument).Methods("GET")
 
 	router.Handle("/metrics", promhttp.Handler())				// get metrics
 

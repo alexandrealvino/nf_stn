@@ -33,13 +33,7 @@ func main() {
 	}
 	// router handlers
 
-	router.HandleFunc("/login", routes.LoginT).Methods("GET")            // render login.html
-	router.HandleFunc("/login", routes.Login).Methods("POST")            // try to login and redirects to index.html if true
-	router.HandleFunc("/api", routes.GetIndexT).Methods("GET")           // render index.html
-	router.HandleFunc("/api/addPage", routes.AddPageT).Methods("GET")    // render addPage.html
-	router.HandleFunc("/api/addPage", routes.AddInvoice).Methods("POST") // insert invoice from addPage.html
-
-	router.HandleFunc("/api/getAll", routes.GetAll).Methods("GET")                              // get invoices list and returns data in json format
+	router.HandleFunc("/api", routes.GetAll).Methods("GET")                              // get invoices list and returns data in json format
 	router.HandleFunc("/api/getInvoiceByDocument/", routes.GetInvoiceByDocument).Methods("GET") // get invoice by document and returns data in json format
 	router.HandleFunc("/api/insertInvoice", routes.InsertInvoice).Methods("POST")               // insert invoice
 	router.HandleFunc("/api/del/", routes.DeleteInvoice).Methods("DELETE")                      // set isActive = 0 for logic deletion

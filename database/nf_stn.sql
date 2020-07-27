@@ -32,5 +32,5 @@ create table nf_stn.hashes
 -- 1,admin,$2a$04$mi4DMjIrtypqG9udFxikDusT3KK7tEDSbZ3TNSSr3g6kgC51ccJaS
 --
 --
--- 1,00000000000011,patched,12,2,2022,0,2020-07-20 10:07:37,2020-07-20 10:07:37
+1,00000000000011,patched,12,2,2022,0,2020-07-20 10:07:37,2020-07-20 10:07:37
 

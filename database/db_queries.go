@@ -19,6 +19,7 @@ import (
 //go:generate  go run github.com/golang/mock/mockgen  -package mock -destination=./mock/db_mock.go -source=$GOFILE
 
 type DataBase interface {
+	init()
 	GetAll() ([]entities.Invoice, error)
 	GetInvoiceByDocument(document string) (entities.Invoice, error)
 	GetAccountByProfile(profile string) (string, []byte, error)
@@ -29,7 +30,7 @@ type DataBase interface {
 	PatchInvoice(invoice entities.Invoice) error
 	InvoiceExists(document string) (entities.Invoice, error)
 	ClearTable()
-	Pagination() ([]entities.Invoice, error)
+	Pagination(begin, end int) ([]entities.Invoice, error)
 }
 
 type MySql struct {
@@ -40,7 +41,7 @@ type MySql struct {
 var db config.App
 
 // init initializes the db connection
-func (ms *MySql) Init() {
+func (ms *MySql) init() {
 	db.Initialize(ms.Config.Dbdriver(), ms.Config.Dbuser(), ms.Config.Dbpass(), ms.Config.Dbname())
 }
 
@@ -65,7 +66,7 @@ func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoi
 
 // GetInvoiceByDocument gets the invoice by the document value
 func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error) { // get invoice by document
-	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices WHERE document = ?;", document)
+	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ?;", document)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -82,7 +83,7 @@ func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error)
 
 // GetAccountByProfile gets the account data by the given profile
 func (ms *MySql) GetAccountByProfile(profile string) (string, []byte, error) { // get acc data by profile
-	result, err := db.Db.Query("SELECT profile, hash FROM hashes WHERE profile = ?;", profile)
+	result, err := db.Db.Query("SELECT profile, hash FROM nf_stn.hashes WHERE profile = ?;", profile)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -99,7 +100,7 @@ func (ms *MySql) GetAccountByProfile(profile string) (string, []byte, error) { /
 
 // GetInvoiceByID gets the invoice by the given ID
 func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
-	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices WHERE id = ?", id)
+	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE id = ?", id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -123,7 +124,7 @@ func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
 	//now := date + " " + clock
 	//fmt.Println(now)
-	_, err := db.Db.Query("INSERT INTO invoices (referenceMonth, referenceYear, document , description, amount, createdAt, deactivatedAt) VALUES (?, ?, ?, ?, ?, ?, ?);",
+	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt, deactivatedAt) VALUES (?, ?, ?, ?, ?, ?, ?);",
 		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.CreatedAt, invoice.DeactivatedAt)
 	if err != nil {
 		panic(err.Error())
@@ -134,7 +135,7 @@ func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
 func (ms *MySql) DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
-	_, err := db.Db.Exec("UPDATE invoices SET isActive = ? WHERE id = ?;", 0, id)
+	_, err := db.Db.Exec("UPDATE nf_stn.invoices SET isActive = ? WHERE id = ?;", 0, id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -144,7 +145,7 @@ func (ms *MySql) DeleteInvoice(id int) error { // set isActive = 0 for logic del
 
 // UpdateInvoice updates database values from the row of the given invoice
 func (ms *MySql) UpdateInvoice(invoice entities.Invoice) error { // update invoice
-	_, err := db.Db.Exec("UPDATE invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
+	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -154,7 +155,7 @@ func (ms *MySql) UpdateInvoice(invoice entities.Invoice) error { // update invoi
 
 // PatchInvoice partially updates database values from the row of the given invoice
 func (ms *MySql) PatchInvoice(invoice entities.Invoice) error { // update invoice
-	_, err := db.Db.Exec("UPDATE invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
+	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -164,7 +165,7 @@ func (ms *MySql) PatchInvoice(invoice entities.Invoice) error { // update invoic
 
 // InvoiceExists checks if the given invoice document exists
 func (ms *MySql) InvoiceExists(document string) (entities.Invoice, error) { // checks if invoice is already exists
-	result, err := db.Db.Query("SELECT id FROM invoices WHERE document = ?", document)
+	result, err := db.Db.Query("SELECT id FROM nf_stn.invoices WHERE document = ?", document)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -183,12 +184,12 @@ func (ms *MySql) InvoiceExists(document string) (entities.Invoice, error) { // c
 
 // ClearTable truncates the invoices table
 func (ms *MySql) ClearTable() {
-	_, _ = db.Db.Exec("TRUNCATE TABLE invoices")
+	_, _ = db.Db.Exec("TRUNCATE TABLE nf_stn.invoices")
 }
 
 //
-func (ms *MySql) Pagination() ([]entities.Invoice, error) {
-	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM invoices LIMIT 0,10;")
+func (ms *MySql) Pagination(begin, end int) ([]entities.Invoice, error) {
+	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices LIMIT ?,?;", begin, end)
 	if err != nil {
 		panic(err.Error())
 	}

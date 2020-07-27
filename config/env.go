@@ -1,6 +1,8 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 //var DbDriver = os.Getenv("MYSQL_DRIVER")
 //var DbName = os.Getenv("MYSQL_DATABASE")
@@ -16,20 +18,21 @@ type DataBaseConfig interface {
 	Dbname() string
 }
 
-type Config struct {}
+type Config struct {
+}
 
-func (c *Config) Dbdriver() string {
+	func(c *Config) Dbdriver() string {
 	return os.Getenv("MYSQL_DRIVER")
 }
 
-func (c *Config) Dbuser() string {
+	func (c *Config) Dbuser() string {
 	return os.Getenv("MYSQL_USER")
 }
 
-func (c *Config) Dbpass() string {
+	func (c *Config) Dbpass() string {
 	return os.Getenv("MYSQL_PASSWORD")
 }
-func (c *Config) Dbname() string {
+	func (c *Config) Dbname() string {
 	return os.Getenv("MYSQL_DATABASE")
 }
 

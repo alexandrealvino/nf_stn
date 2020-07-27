@@ -34,6 +34,15 @@ func (m *MockDataBase) EXPECT() *MockDataBaseMockRecorder {
 }
 
 // GetAll mocks base method
+func (m *MockDataBase) Init() {
+	m.ctrl.T.Helper()
+	//ret := m.ctrl.Call(m, "GetAll")
+	//ret0, _ := ret[0].([]entities.Invoice)
+	//ret1, _ := ret[1].(error)
+	return
+}
+
+// GetAll mocks base method
 func (m *MockDataBase) GetAll() ([]entities.Invoice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
@@ -178,7 +187,7 @@ func (mr *MockDataBaseMockRecorder) ClearTable() *gomock.Call {
 }
 
 // Pagination mocks base method
-func (m *MockDataBase) Pagination() ([]entities.Invoice, error) {
+func (m *MockDataBase) Pagination(int) ([]entities.Invoice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Pagination")
 	ret0, _ := ret[0].([]entities.Invoice)

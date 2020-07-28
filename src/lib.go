@@ -1,9 +1,22 @@
 package src
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"os"
+	"strconv"
+	"time"
 )
+
+func Now() string {
+	monthDay, month, hour, min, sec, year := time.Now().Day(), time.Now().Month(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), time.Now().Year()
+	date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
+	clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
+	now := date + " " + clock
+	return now
+}
+
 
 // HashAndSalt uses GenerateFromPassword to hash & salt pwd.
 // MinCost is just an integer constant provided by the bcrypt
@@ -35,3 +48,53 @@ func ComparePasswords(hashedPwd string, plainPwd string) bool {
 	}
 	return true
 }
+//
+func CreateToken(userid uint64, username string) (string, error) {
+	var err error
+	//Creating Access Token
+	_ = os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
+	atClaims := jwt.MapClaims{}
+	atClaims["authorized"] = true
+	atClaims["user_id"] = userid
+	atClaims["username"] = username
+	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+//func Authentication(next http.HandlerFunc) http.HandlerFunc { // get invoices and returns in json format
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		//Login(w http.ResponseWriter, r *http.Request)
+//		log.Println("middleware", r.URL)
+//		var user = entities.User{
+//			ID:       1,
+//			Username: "username",
+//			Password: "password",
+//		}
+//		var u entities.User
+//		u.Username = r.Header.Get("username")
+//		u.Password = r.Header.Get("password")
+//		//compare the user from the request, with the one we defined:
+//		if user.Username != u.Username || user.Password != u.Password {
+//			w.WriteHeader(http.StatusUnauthorized)
+//			return
+//		}
+//		//next(w, r)
+//		token, err := CreateToken(user.ID, user.Username)
+//		if err != nil {
+//			panic(err)
+//			return
+//		}
+//		w.Header().Add("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusOK)
+//		encoder := json.NewEncoder(w)
+//		encoder.SetIndent("", "\t")
+//		_ = encoder.Encode(token)
+//		next(w, r)
+//	}
+//}
+////

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"nf_stn/config"
 	"nf_stn/entities"
+	"nf_stn/src"
 )
 
 //go:generate  go run github.com/golang/mock/mockgen  -package mock -destination=./mock/db_mock.go -source=$GOFILE
@@ -32,21 +33,16 @@ type DataBase interface {
 	PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
 }
 
-// Instantiating the App object for the db connection
-
-
-
 type MySql struct {
 	Config config.DataBaseConfig
 }
 
 var db config.App
 
-// init initializes the db connection
+// Init initializes the db connection
 func (ms *MySql) Init()  {
 	db.Initialize(ms.Config.Dbdriver(), ms.Config.Dbuser(), ms.Config.Dbpass(), ms.Config.Dbname())
 }
-
 // GetAll gets all the rows of the invoices db TODO paginação passando parametros
 func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoices
 	results, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY id ASC")
@@ -65,7 +61,6 @@ func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoi
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // GetInvoiceByDocument gets the invoice by the document value
 func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error) { // get invoice by document
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ?;", document)
@@ -82,7 +77,6 @@ func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error)
 	fmt.Println("Successfully got invoice!")
 	return inv, err
 }
-
 // GetAccountByProfile gets the account data by the given profile
 func (ms *MySql) GetAccountByProfile(profile string) (string, []byte, error) { // get acc data by profile
 	result, err := db.Db.Query("SELECT profile, hash FROM nf_stn.hashes WHERE profile = ?;", profile)
@@ -99,7 +93,6 @@ func (ms *MySql) GetAccountByProfile(profile string) (string, []byte, error) { /
 	fmt.Println("Successfully got hash!")
 	return acc.Profile, acc.Hash, err
 }
-
 // GetInvoiceByID gets the invoice by the given ID
 func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE id = ?", id)
@@ -118,23 +111,21 @@ func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 	}
 	return inv, err
 }
-
 // InsertInvoice inserts the given invoice to invoices db
 func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoice
-	//monthDay,month,hour,min,sec,year := time.Now().Day(),time.Now().Month(),time.Now().Hour(),time.Now().Minute(),time.Now().Second(),time.Now().Year()
+	//monthDay, month, hour, min, sec, year := time.Now().Day(), time.Now().Month(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), time.Now().Year()
 	//date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
 	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
 	//now := date + " " + clock
-	//fmt.Println(now)
+	now:=src.Now()
 	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt, deactivatedAt) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.CreatedAt, invoice.DeactivatedAt)
+		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, now, invoice.DeactivatedAt)
 	if err != nil {
 		panic(err.Error())
 	}
 	fmt.Println("Successfully inserted invoice!")
 	return err
 }
-
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
 func (ms *MySql) DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices SET isActive = ? WHERE id = ?;", 0, id)
@@ -144,7 +135,6 @@ func (ms *MySql) DeleteInvoice(id int) error { // set isActive = 0 for logic del
 	fmt.Println("Successfully deleted invoice!")
 	return err
 }
-
 // UpdateInvoice updates database values from the row of the given invoice
 func (ms *MySql) UpdateInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
@@ -154,7 +144,6 @@ func (ms *MySql) UpdateInvoice(invoice entities.Invoice) error { // update invoi
 	fmt.Println("Successfully updated invoice!")
 	return err
 }
-
 // PatchInvoice partially updates database values from the row of the given invoice
 func (ms *MySql) PatchInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
@@ -164,7 +153,6 @@ func (ms *MySql) PatchInvoice(invoice entities.Invoice) error { // update invoic
 	fmt.Println("Successfully patched invoice!")
 	return err
 }
-
 // InvoiceExists checks if the given invoice document exists
 func (ms *MySql) InvoiceExists(document string) (entities.Invoice, error) { // checks if invoice is already exists
 	result, err := db.Db.Query("SELECT id FROM nf_stn.invoices WHERE document = ?", document)
@@ -183,12 +171,10 @@ func (ms *MySql) InvoiceExists(document string) (entities.Invoice, error) { // c
 	}
 	return invoice, err
 }
-
 // ClearTable truncates the invoices table
 func (ms *MySql) ClearTable() {
 	_, _ = db.Db.Exec("TRUNCATE TABLE nf_stn.invoices")
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) Pagination(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices LIMIT 10 OFFSET ?;", offset)
@@ -215,7 +201,6 @@ func (ms *MySql) Pagination(offset int) ([]entities.Invoice, error) {
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth LIMIT 10 OFFSET ?;", offset)
@@ -242,7 +227,6 @@ func (ms *MySql) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceYear LIMIT 10 OFFSET ?;", offset)
@@ -269,7 +253,6 @@ func (ms *MySql) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) PaginationOrderByDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document LIMIT 10 OFFSET ?;", offset)
@@ -296,7 +279,6 @@ func (ms *MySql) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, referenceYear LIMIT 10 OFFSET ?;", offset)
@@ -323,7 +305,6 @@ func (ms *MySql) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, document LIMIT 10 OFFSET ?;", offset)
@@ -350,7 +331,6 @@ func (ms *MySql) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 // Pagination gets invoices list order by id and responds with 10 items limit
 func (ms *MySql) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document, referenceYear LIMIT 10 OFFSET ?;", offset)
@@ -377,7 +357,6 @@ func (ms *MySql) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 	fmt.Println("Successfully got invoice list!")
 	return invoicesList, err
 }
-
 //
 func (ms *MySql) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceMonth = ? LIMIT 10 OFFSET ?;", referenceMonth, offset)
@@ -404,7 +383,6 @@ func (ms *MySql) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 	fmt.Println("Successfully got invoice by month list!")
 	return invoicesList, err
 }
-
 //
 func (ms *MySql) PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceYear = ? LIMIT 10 OFFSET ?;", referenceYear, offset)
@@ -431,7 +409,6 @@ func (ms *MySql) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 	fmt.Println("Successfully got invoice by year list!")
 	return invoicesList, err
 }
-
 //
 func (ms *MySql) PaginationByDocument(offset int, document string) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ? LIMIT 10 OFFSET ?;", document, offset)

@@ -43,14 +43,14 @@ var db config.App
 func (ms *MySql) Init()  {
 	db.Initialize(ms.Config.Dbdriver(), ms.Config.Dbuser(), ms.Config.Dbpass(), ms.Config.Dbname())
 }
-// GetAll gets all the rows of the invoices db TODO paginação passando parametros
+// GetAll gets all the rows of the invoices db
 func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoices
-	results, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY id ASC")
+	results, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY id")
 	if err != nil {
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err = results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -182,7 +182,7 @@ func (ms *MySql) Pagination(offset int) ([]entities.Invoice, error) {
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 		for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -208,7 +208,7 @@ func (ms *MySql) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -234,7 +234,7 @@ func (ms *MySql) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -260,7 +260,7 @@ func (ms *MySql) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -286,7 +286,7 @@ func (ms *MySql) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -312,7 +312,7 @@ func (ms *MySql) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -338,7 +338,7 @@ func (ms *MySql) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -364,7 +364,7 @@ func (ms *MySql) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -390,7 +390,7 @@ func (ms *MySql) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
@@ -416,7 +416,7 @@ func (ms *MySql) PaginationByDocument(offset int, document string) ([]entities.I
 		panic(err.Error())
 	}
 	inv := entities.Invoice{}
-	invoicesList := []entities.Invoice{}
+	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {

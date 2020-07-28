@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	//"github.com/sirupsen/logrus"
 	"log"
 	"net/http"
 )
@@ -17,7 +16,7 @@ func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
 
 func (lrw *loggingResponseWriter) WriteHeader(code int) {
 	lrw.statusCode = code
-	lrw.ResponseWriter.WriteHeader(code)
+	//lrw.ResponseWriter.WriteHeader(code)
 }
 
 func Logger(next http.Handler) http.Handler {

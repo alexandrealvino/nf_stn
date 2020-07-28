@@ -9,8 +9,6 @@ import (
 
 func Authentication(next http.HandlerFunc) http.HandlerFunc { // get invoices and returns in json format
 	return func(w http.ResponseWriter, r *http.Request) {
-		//Login(w http.ResponseWriter, r *http.Request)
-		//log.Println("middleware", r.URL)
 		var user = entities.User{
 			ID:       1,
 			Username: "username",
@@ -24,7 +22,6 @@ func Authentication(next http.HandlerFunc) http.HandlerFunc { // get invoices an
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		//next(w, r)
 		token, err := src.CreateToken(user.ID, user.Username)
 		if err != nil {
 			panic(err)

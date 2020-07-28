@@ -2,9 +2,13 @@ package config
 
 import (
 	"database/sql"
+	"github.com/go-redis/redis/v7"
 	_ "github.com/go-sql-driver/mysql" // importing driver mysql
 	"log"
+	"os"
 )
+
+var  Client *redis.Client
 
 // App class object for db instantiation
 type App struct {
@@ -18,4 +22,17 @@ func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//Initializing redis
+	dsn := os.Getenv("REDIS_DSN")
+	if len(dsn) == 0 {
+		dsn = "localhost:6379"
+	}
+	Client = redis.NewClient(&redis.Options{
+		Addr: dsn, //redis port
+	})
+	_, err = Client.Ping().Result()
+	//if err != nil {
+	//	panic(err)
+	//}
 }

@@ -2,17 +2,25 @@ package adapter
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"nf_stn/database"
 	"nf_stn/entities"
+	"nf_stn/src"
+
+	//"nf_stn/src"
 	"strconv"
 	//"github.com/golang/mock"
 )
 
 
-
+var user = entities.User{
+	ID:       1,
+	Username: "username",
+	Password: "password",
+}
 
 type Routes struct {
 	Db database.DataBase
@@ -74,8 +82,6 @@ func (rr *Routes) InsertInvoice(w http.ResponseWriter, r *http.Request) {
 }
 // DeleteInvoice makes the logic deletion of the invoice by the given ID in the rr.Db
 func (rr *Routes) DeleteInvoice(w http.ResponseWriter, r *http.Request) {
-	//params := mux.Vars(r)
-	//ID, err := strconv.Atoi(params["id"])
 	ID , _ := strconv.Atoi(r.FormValue("ID"))
 	idNotInList, err := rr.Db.GetInvoiceByID(ID)
 	if err != nil {
@@ -303,8 +309,37 @@ func (rr *Routes) PaginationOrderByYearDocument(w http.ResponseWriter, r *http.R
 	_ = encoder.Encode(results)
 }
 //
-
-//
+func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
+	var u entities.User
+	u.Username = r.Header.Get("username")
+	u.Password = r.Header.Get("password")
+	//compare the user from the request, with the one we defined:
+	if user.Username != u.Username || user.Password != u.Password {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	token, err := src.CreateToken(user.ID, u.Username)
+	if err != nil {
+		panic(err)
+		return
+	}
+	saveErr := src.CreateAuth(user.ID,token)
+	if saveErr != nil {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		fmt.Println(saveErr)
+	}
+	tokens := map[string]string{
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
+	}
+	w.Header().Add("Content-Type", "application/json")
+	//w.WriteHeader(http.StatusOK)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(tokens)
+}
+////
 //func (rr *Routes) Authentication(next http.HandlerFunc) http.HandlerFunc { // get invoices and returns in json format
 //	return func(w http.ResponseWriter, r *http.Request) {
 //		//Login(w http.ResponseWriter, r *http.Request)

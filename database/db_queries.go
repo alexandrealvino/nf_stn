@@ -13,9 +13,11 @@ type DataBase interface {
 	Init()
 	GetAll() ([]entities.Invoice, error)
 	GetInvoiceByDocument(document string) (entities.Invoice, error)
-	GetAccountByProfile(profile string) (string, []byte, error)
+	//GetUserByUsername(username string) (string, string, error)
 	GetInvoiceByID(id int) (entities.Invoice, error)
+	//GetTokenByUsername(username string) (string, error)
 	InsertInvoice(invoice entities.Invoice) error
+	//InsertToken(token, username string) error
 	DeleteInvoice(id int) error
 	UpdateInvoice(invoice entities.Invoice) error
 	PatchInvoice(invoice entities.Invoice) error
@@ -78,20 +80,20 @@ func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error)
 	return inv, err
 }
 // GetAccountByProfile gets the account data by the given profile
-func (ms *MySql) GetAccountByProfile(profile string) (string, []byte, error) { // get acc data by profile
-	result, err := db.Db.Query("SELECT profile, hash FROM nf_stn.hashes WHERE profile = ?;", profile)
+func (ms *MySql) GetUserByUsername(username string) (string, string, error) { // get acc data by profile
+	result, err := db.Db.Query("SELECT username, password FROM nf_stn.users WHERE username = ?;", username)
 	if err != nil {
 		panic(err.Error())
 	}
-	var acc entities.Account
+	var u entities.User
 	for result.Next() {
-		err = result.Scan(&acc.Profile, &acc.Hash)
+		err = result.Scan(&u.Username, &u.Password)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
-	fmt.Println("Successfully got hash!")
-	return acc.Profile, acc.Hash, err
+	fmt.Println("Successfully got user!")
+	return u.Username, u.Password, err
 }
 // GetInvoiceByID gets the invoice by the given ID
 func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
@@ -111,6 +113,24 @@ func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 	}
 	return inv, err
 }
+
+func (ms *MySql) GetTokenByUsername(username string) (string, error) { // get ticker by id
+	result, err := db.Db.Query("SELECT token FROM nf_stn.users WHERE username = ?", username)
+	if err != nil {
+		panic(err.Error())
+	}
+	var token string
+	for result.Next() {
+		err = result.Scan(&token)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	if token != "" {
+		fmt.Println("Successfully got token!")
+	}
+	return token, err
+}
 // InsertInvoice inserts the given invoice to invoices db
 func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoice
 	//monthDay, month, hour, min, sec, year := time.Now().Day(), time.Now().Month(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), time.Now().Year()
@@ -124,6 +144,17 @@ func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 		panic(err.Error())
 	}
 	fmt.Println("Successfully inserted invoice!")
+	return err
+}
+//
+func (ms *MySql) InsertToken(token, username string) error { // insert invoice
+	now:=src.Now()
+	_, err := db.Db.Query("UPDATE nf_stn.users SET token=?, createdAt=? WHERE username=?;",
+		token, now, username)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("Successfully inserted token!")
 	return err
 }
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
@@ -435,3 +466,4 @@ func (ms *MySql) PaginationByDocument(offset int, document string) ([]entities.I
 	fmt.Println("Successfully got invoice by year list!")
 	return invoicesList, err
 }
+//

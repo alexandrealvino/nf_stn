@@ -8,21 +8,10 @@ import (
 	"nf_stn/adapter"
 	"nf_stn/config"
 	"nf_stn/database"
-	"nf_stn/entities"
 	"nf_stn/src/middleware"
-
 	//"github.com/sirupsen/logrus"
 	//"github.com/spf13/viper"
 )
-
-type handler struct {}
-
-//A sample use
-var user = entities.User{
-	ID:             1,
-	Username: "username",
-	Password: "password",
-}
 
 func main() {
 
@@ -58,7 +47,7 @@ func main() {
 	router.Handle("/api/pagination/{offset}/year/{referenceYear}", middleware.Logger(middleware.Authentication(routes.PaginationByYear))).Methods("GET")
 	router.Handle("/api/pagination/{offset}/document/{document}", middleware.Logger(middleware.Authentication(routes.PaginationByDocument))).Methods("GET")
 
-	//router.HandleFunc("/api/login", routes.Login).Methods("GET")
+	router.HandleFunc("/api/login", routes.GenerateToken).Methods("GET")
 
 	router.Handle("/metrics", promhttp.Handler())				// get metrics
 

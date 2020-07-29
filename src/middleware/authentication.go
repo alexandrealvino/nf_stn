@@ -227,5 +227,51 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 		encoder.SetIndent("", "\t")
 		_ = encoder.Encode(td)
 	}
-
+}
+//
+func Logout(w http.ResponseWriter, r *http.Request) {
+	tokenAuth, err := ExtractTokenMetadata(r)
+	if err != nil {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode("unauthorized")
+		return
+	}
+	deleted, delErr := src.DeleteAuth(tokenAuth.AccessUuid)
+	if delErr != nil || deleted == 0 { //if any goes wrong
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode("unauthorized")
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode("Successfully logged out")
+}
+//
+func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := TokenValid(r)
+		if err != nil {
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			encoder := json.NewEncoder(w)
+			encoder.SetIndent("", "\t")
+			_ = encoder.Encode("unauthorized")
+			//c.Abort()
+			return
+		}
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode("authorized")
+		next(w,r)
+	}
 }

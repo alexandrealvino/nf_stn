@@ -110,7 +110,15 @@ func CreateAuth(userid uint64, td *entities.TokenDetails) error {
 	}
 	return nil
 }
-
+//
+func DeleteAuth(givenUuid string) (int64,error) {
+	deleted, err := config.Client.Del(givenUuid).Result()
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
+}
+//
 //func GenerateToken(username, password string) bool{
 //	//compare the user from the request, with the one we defined:
 //	if user.Username != username || user.Password != password {

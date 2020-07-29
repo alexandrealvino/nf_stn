@@ -24,7 +24,7 @@ func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
 	}
 
 	//Initializing redis
-	dsn := os.Getenv("REDIS_DSN")
+	dsn := os.Getenv("REDIS_DSN") // TODO env
 	if len(dsn) == 0 {
 		dsn = "localhost:6379"
 	}
@@ -32,7 +32,7 @@ func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
 		Addr: dsn, //redis port
 	})
 	_, err = Client.Ping().Result()
-	//if err != nil {
-	//	panic(err)
-	//}
+	if err != nil {
+		panic(err)
+	}
 }

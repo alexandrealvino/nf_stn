@@ -8,8 +8,3 @@ type TokenDetails struct {
 	AtExpires    int64
 	RtExpires    int64
 }
-
-type Todo struct {
-	UserID uint64 `json:"user_id"`
-	Title string `json:"title"`
-}

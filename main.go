@@ -14,11 +14,8 @@ import (
 )
 
 func main() {
-
-
 	router := mux.NewRouter() // init router
 	log.Println("Server started on: http://localhost:8000")
-
 
 	cfg :=config.Config{}
 	db := database.MySql{
@@ -28,6 +25,7 @@ func main() {
 	routes := adapter.Routes{
 		Db: &db,
 	}
+
 	// router handlers
 
 	//router.Handle("/api", middleware.Logger(middleware.Authentication(routes.GetAll))).Methods("GET")                              // get invoices list and returns data in json format

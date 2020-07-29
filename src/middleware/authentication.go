@@ -20,18 +20,6 @@ import (
 	//"strings"
 )
 
-
-
-type Todo struct {
-	UserID uint64 `json:"user_id"`
-	Title  string `json:"title"`
-}
-
-type AccessDetails struct {
-	AccessUuid string
-	UserId   uint64
-}
-
 func Authentication(next http.HandlerFunc) http.HandlerFunc { // get invoices and returns in json format
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user = entities.User{
@@ -140,7 +128,6 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	}
 	return token, nil
 }
-
 //
 func TokenValid(r *http.Request) error {
 	token, err := VerifyToken(r)
@@ -153,7 +140,7 @@ func TokenValid(r *http.Request) error {
 	return nil
 }
 //
-func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
+func ExtractTokenMetadata(r *http.Request) (*entities.AccessDetails, error) {
 	token, err := VerifyToken(r)
 	if err != nil {
 		return nil, err
@@ -168,7 +155,7 @@ func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &AccessDetails{
+		return &entities.AccessDetails{
 			AccessUuid: accessUuid,
 			UserId:   userId,
 		}, nil
@@ -176,7 +163,7 @@ func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 	return nil, err
 }
 //
-func FetchAuth(authD *AccessDetails) (uint64, error) {
+func FetchAuth(authD *entities.AccessDetails) (uint64, error) {
 	userid, err := config.Client.Get(authD.AccessUuid).Result()
 	if err != nil {
 		return 0, err
@@ -186,7 +173,7 @@ func FetchAuth(authD *AccessDetails) (uint64, error) {
 }
 //
 func CreateTodo(w http.ResponseWriter, r *http.Request) {
-	var td *Todo
+	var td *entities.Todo
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -275,3 +262,4 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		next(w,r)
 	}
 }
+//

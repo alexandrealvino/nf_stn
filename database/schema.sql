@@ -4,18 +4,27 @@ use nf_stn;
 
 create table invoices
 (
-    id       int auto_increment
+    id             int auto_increment
         primary key,
-    document   varchar(14)          not null,
-    description   varchar(256)      not null,
-    amount    float(64,2)           not null,
-    referenceMonth  int             not null,
-    referenceYear   int             not null,
-    isActive    tinyint  default 1  not null,
-    createdAt   datetime            not null,
-    deactivatedAt datetime          not null
+    document       varchar(14)                            not null,
+    description    varchar(256)                           not null,
+    amount         float(64, 2)                           not null,
+    referenceMonth int                                    not null,
+    referenceYear  int                                    not null,
+    isActive       tinyint  default 1                     not null,
+    createdAt      datetime                               not null,
+    deactivatedAt  datetime default '0000-00-00 00:00:00' null
 );
 
+create table users
+(
+    id        int auto_increment
+        primary key,
+    username  varchar(20)  not null,
+    password  char(8)      not null,
+    token     varchar(256) null,
+    createdAt datetime     null
+);
 
 # Invoice
 #     ReferenceMonth : INTEGER

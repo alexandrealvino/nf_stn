@@ -47,7 +47,8 @@ func main() {
 	router.Handle("/api/pagination/{offset}/year/{referenceYear}", middleware.Logger(middleware.Authentication(routes.PaginationByYear))).Methods("GET")
 	router.Handle("/api/pagination/{offset}/document/{document}", middleware.Logger(middleware.Authentication(routes.PaginationByDocument))).Methods("GET")
 
-	router.HandleFunc("/api/login", routes.GenerateToken).Methods("GET")
+	router.HandleFunc("/api/login", routes.GenerateToken).Methods("POST")
+	router.HandleFunc("/api/createTodo", middleware.CreateTodo).Methods("POST")
 
 	router.Handle("/metrics", promhttp.Handler())				// get metrics
 

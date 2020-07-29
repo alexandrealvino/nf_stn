@@ -138,8 +138,8 @@ func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
 	//now := date + " " + clock
 	now:=src.Now()
-	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt, deactivatedAt) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, now, invoice.DeactivatedAt)
+	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt) VALUES (?, ?, ?, ?, ?, ?);",
+		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, now)
 	if err != nil {
 		panic(err.Error())
 	}

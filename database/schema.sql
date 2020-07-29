@@ -12,8 +12,8 @@ create table invoices
     referenceMonth int                                    not null,
     referenceYear  int                                    not null,
     isActive       tinyint  default 1                     not null,
-    createdAt      datetime                               not null,
-    deactivatedAt  datetime default '0000-00-00 00:00:00' null
+    createdAt      datetime default CURRENT_TIMESTAMP     not null,
+    deactivatedAt  datetime default '2020-01-01 00:00:00-00:01' ON UPDATE CURRENT_TIMESTAMP
 );
 
 create table users

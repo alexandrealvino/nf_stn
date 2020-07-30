@@ -15,6 +15,7 @@ import (
 	//"github.com/golang/mock"
 )
 
+// Routes struct
 type Routes struct {
 	Db database.DataBase
 }

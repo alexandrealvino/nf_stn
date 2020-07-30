@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"io/ioutil"
-	"nf_stn/config"
 	"os"
 	"strconv"
 	"strings"
@@ -103,7 +101,7 @@ import (
 //}
 ////
 
-//
+// ExtractToken extracts the token from the request header
 func ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	//normally Authorization the_token_xxx
@@ -113,7 +111,7 @@ func ExtractToken(r *http.Request) string {
 	}
 	return ""
 }
-//
+// VerifyToken verifies the token
 func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := ExtractToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -128,7 +126,7 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	}
 	return token, nil
 }
-//
+// TokenValid checks the validity of the token, returns error if it has already expired
 func TokenValid(r *http.Request) error {
 	token, err := VerifyToken(r)
 	if err != nil {
@@ -139,7 +137,7 @@ func TokenValid(r *http.Request) error {
 	}
 	return nil
 }
-//
+// ExtractTokenMetadata the token metadata so we can lookup in our redis
 func ExtractTokenMetadata(r *http.Request) (*entities.AccessDetails, error) {
 	token, err := VerifyToken(r)
 	if err != nil {
@@ -162,60 +160,7 @@ func ExtractTokenMetadata(r *http.Request) (*entities.AccessDetails, error) {
 	}
 	return nil, err
 }
-//
-func FetchAuth(authD *entities.AccessDetails) (uint64, error) {
-	userid, err := config.Client.Get(authD.AccessUuid).Result()
-	if err != nil {
-		return 0, err
-	}
-	userID, _ := strconv.ParseUint(userid, 10, 64)
-	return userID, nil
-}
-//
-func CreateTodo(w http.ResponseWriter, r *http.Request) {
-	var td *entities.Todo
-	r.Header.Set("Content-Type", "application/json")
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		panic(err.Error())
-	}
-	// Unmarshal
-	err = json.Unmarshal(b, &td)
-	if err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return
-	}
-	tokenAuth, err := ExtractTokenMetadata(r)
-	if err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		encoder := json.NewEncoder(w)
-		encoder.SetIndent("", "\t")
-		_ = encoder.Encode("Unauthorized")
-		return
-	}
-	userId, err := FetchAuth(tokenAuth)
-	if err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		encoder := json.NewEncoder(w)
-		encoder.SetIndent("", "\t")
-		_ = encoder.Encode("Unauthorized")
-		return
-	} else {
-		td.UserID = userId
-
-		//you can proceed to save the Todo to a database
-		//but we will just return it to the caller here:
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		encoder := json.NewEncoder(w)
-		encoder.SetIndent("", "\t")
-		_ = encoder.Encode(td)
-	}
-}
-//
+// Logout requests a logout
 func Logout(w http.ResponseWriter, r *http.Request) {
 	tokenAuth, err := ExtractTokenMetadata(r)
 	if err != nil {
@@ -241,7 +186,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode("Successfully logged out")
 }
-//
+// TokenAuthMiddleware middleware to secure routes and authenticate requests
 func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := TokenValid(r)
@@ -272,4 +217,59 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 	}
 }
+//
+
+//
+//func FetchAuth(authD *entities.AccessDetails) (uint64, error) {
+//	userid, err := config.Client.Get(authD.AccessUuid).Result()
+//	if err != nil {
+//		return 0, err
+//	}
+//	userID, _ := strconv.ParseUint(userid, 10, 64)
+//	return userID, nil
+//}
+//
+//func CreateTodo(w http.ResponseWriter, r *http.Request) {
+//	var td *entities.Todo
+//	r.Header.Set("Content-Type", "application/json")
+//	b, err := ioutil.ReadAll(r.Body)
+//	if err != nil {
+//		panic(err.Error())
+//	}
+//	// Unmarshal
+//	err = json.Unmarshal(b, &td)
+//	if err != nil {
+//		w.Header().Add("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusUnprocessableEntity)
+//		return
+//	}
+//	tokenAuth, err := ExtractTokenMetadata(r)
+//	if err != nil {
+//		w.Header().Add("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusUnauthorized)
+//		encoder := json.NewEncoder(w)
+//		encoder.SetIndent("", "\t")
+//		_ = encoder.Encode("Unauthorized")
+//		return
+//	}
+//	userId, err := FetchAuth(tokenAuth)
+//	if err != nil {
+//		w.Header().Add("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusUnauthorized)
+//		encoder := json.NewEncoder(w)
+//		encoder.SetIndent("", "\t")
+//		_ = encoder.Encode("Unauthorized")
+//		return
+//	} else {
+//		td.UserID = userId
+//
+//		//you can proceed to save the Todo to a database
+//		//but we will just return it to the caller here:
+//		w.Header().Add("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusCreated)
+//		encoder := json.NewEncoder(w)
+//		encoder.SetIndent("", "\t")
+//		_ = encoder.Encode(td)
+//	}
+//}
 //

@@ -2,26 +2,28 @@ package config
 
 import "os"
 
+// DataBaseConfig interface
 type DataBaseConfig interface {
-	Dbdriver() string
-	Dbuser() string
-	Dbpass() string
-	Dbname() string
+	DbDriver() string
+	DbUser() string
+	DbPass() string
+	DbName() string
 }
-
+// Config struct
 type Config struct {}
-
-func (c *Config) Dbdriver() string {
+// DbDriver returns the db driver env variable
+func (c *Config) DbDriver() string {
 	return os.Getenv("MYSQL_DRIVER")
 }
-
-func (c *Config) Dbuser() string {
+// DbUser returns the db user env variable
+func (c *Config) DbUser() string {
 	return os.Getenv("MYSQL_USER")
 }
-
-func (c *Config) Dbpass() string {
+// DbPass returns the db password env variable
+func (c *Config) DbPass() string {
 	return os.Getenv("MYSQL_PASSWORD")
 }
-func (c *Config) Dbname() string {
+// DbName returns the db name env variable
+func (c *Config) DbName() string {
 	return os.Getenv("MYSQL_DATABASE")
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+// Client instantiation
 var  Client *redis.Client
 
 // App class object for db instantiation
@@ -16,10 +17,10 @@ type App struct {
 }
 
 // Initialize initiates the db connection and redis
-func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
+func (a *App) Initialize(dbDriver, dbUser, dbPass, dbName string) {
 	var err error
 	// Initializing db connection
-	a.Db, err = sql.Open(dbdriver, dbuser+":"+dbpass+"@tcp(127.0.0.1:3306)/"+dbname)
+	a.Db, err = sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp(127.0.0.1:3306)/"+dbName)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -24,6 +24,7 @@ create table users
     password  char(8)      not null
 );
 
+INSERT INTO nf_stn.users (username, password) VALUES ("username","password");
 # Invoice
 #     ReferenceMonth : INTEGER
 #     ReferenceYear : INTEGER

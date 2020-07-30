@@ -9,6 +9,7 @@ import (
 
 //go:generate  go run github.com/golang/mock/mockgen  -package mock -destination=./mock/db_mock.go -source=$GOFILE
 
+// DataBase interface
 type DataBase interface {
 	Init()
 	GetAll() ([]entities.Invoice, error)
@@ -33,15 +34,17 @@ type DataBase interface {
 	PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
 }
 
+// MySql struct
 type MySql struct {
 	Config config.DataBaseConfig
 }
 
+// db instantiation
 var db config.App
 
 // Init initializes db and redis connections
 func (ms *MySql) Init()  {
-	db.Initialize(ms.Config.Dbdriver(), ms.Config.Dbuser(), ms.Config.Dbpass(), ms.Config.Dbname())
+	db.Initialize(ms.Config.DbDriver(), ms.Config.DbUser(), ms.Config.DbPass(), ms.Config.DbName())
 }
 // GetAll gets all the rows of the invoices db
 func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoices

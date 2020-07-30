@@ -1,5 +1,6 @@
 package entities
 
+// TokenDetails struct
 type TokenDetails struct {
 	AccessToken  string
 	RefreshToken string

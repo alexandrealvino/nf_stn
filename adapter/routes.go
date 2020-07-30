@@ -15,13 +15,6 @@ import (
 	//"github.com/golang/mock"
 )
 
-
-var user = entities.User{
-	ID:       1,
-	Username: "username",
-	Password: "password",
-}
-
 type Routes struct {
 	Db database.DataBase
 }
@@ -97,10 +90,13 @@ func (rr *Routes) DeleteInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusOK)
 	}
+	deletedID := map[string]int{
+		"ID": idNotInList.ID,
+	}
 	w.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
-	_ = encoder.Encode(ID)
+	_ = encoder.Encode(deletedID)
 }
 // UpdateInvoice updates database values from the row of the given invoice
 func (rr *Routes) UpdateInvoice(w http.ResponseWriter, r *http.Request) {
@@ -154,12 +150,12 @@ func (rr *Routes) PatchInvoice(w http.ResponseWriter, r *http.Request) {
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(editedInvoice)
 }
-//
+// Pagination gets page list of invoices ordered by id, 10 invoices per page
 func (rr *Routes) Pagination(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	//params := mux.Vars(r)
-	//offset, err := strconv.Atoi(params["offset"])
-	offset , _ := strconv.Atoi(r.FormValue("offset"))
-	results, err := rr.Db.Pagination(offset-1)
+	//page, err := strconv.Atoi(params["page"])
+	page , _ := strconv.Atoi(r.FormValue("page"))
+	results, err := rr.Db.Pagination((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -170,12 +166,12 @@ func (rr *Routes) Pagination(w http.ResponseWriter, r *http.Request) { // get in
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationByMonth gets page list of invoices by month, 10 invoices per page
 func (rr *Routes) PaginationByMonth(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
+	page, err := strconv.Atoi(params["page"])
 	referenceMonth, err := strconv.Atoi(params["referenceMonth"])
-	results, err := rr.Db.PaginationByMonth(offset,referenceMonth)
+	results, err := rr.Db.PaginationByMonth((page-1)*10,referenceMonth)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -186,12 +182,12 @@ func (rr *Routes) PaginationByMonth(w http.ResponseWriter, r *http.Request) { //
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationByYear gets page list of invoices by year, 10 invoices per page
 func (rr *Routes) PaginationByYear(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
+	page, err := strconv.Atoi(params["page"])
 	referenceYear, err := strconv.Atoi(params["referenceYear"])
-	results, err := rr.Db.PaginationByYear(offset,referenceYear)
+	results, err := rr.Db.PaginationByYear((page-1)*10,referenceYear)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -202,12 +198,12 @@ func (rr *Routes) PaginationByYear(w http.ResponseWriter, r *http.Request) { // 
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationByDocument gets page list of invoices by document, 10 invoices per page
 func (rr *Routes) PaginationByDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
+	page, err := strconv.Atoi(params["page"])
 	document := params["document"]
-	results, err := rr.Db.PaginationByDocument(offset,document)
+	results, err := rr.Db.PaginationByDocument((page-1)*10,document)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -218,11 +214,11 @@ func (rr *Routes) PaginationByDocument(w http.ResponseWriter, r *http.Request) {
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationOrderByMonth gets page list of invoices ordered by month, 10 invoices per page
 func (rr *Routes) PaginationOrderByMonth(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
-	results, err := rr.Db.PaginationOrderByMonth(offset)
+	page, err := strconv.Atoi(params["page"])
+	results, err := rr.Db.PaginationOrderByMonth((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -233,11 +229,11 @@ func (rr *Routes) PaginationOrderByMonth(w http.ResponseWriter, r *http.Request)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationOrderByYear gets page list of invoices ordered by year, 10 invoices per page
 func (rr *Routes) PaginationOrderByYear(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
-	results, err := rr.Db.PaginationOrderByYear(offset)
+	page, err := strconv.Atoi(params["page"])
+	results, err := rr.Db.PaginationOrderByYear((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -248,11 +244,11 @@ func (rr *Routes) PaginationOrderByYear(w http.ResponseWriter, r *http.Request) 
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationOrderByDocument gets page list of invoices ordered by document, 10 invoices per page
 func (rr *Routes) PaginationOrderByDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
-	results, err := rr.Db.PaginationOrderByDocument(offset)
+	page, err := strconv.Atoi(params["page"])
+	results, err := rr.Db.PaginationOrderByDocument((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -263,11 +259,11 @@ func (rr *Routes) PaginationOrderByDocument(w http.ResponseWriter, r *http.Reque
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationOrderByMonthYear gets page list of invoices ordered by month and year, 10 invoices per page
 func (rr *Routes) PaginationOrderByMonthYear(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
-	results, err := rr.Db.PaginationOrderByMonthYear(offset)
+	page, err := strconv.Atoi(params["page"])
+	results, err := rr.Db.PaginationOrderByMonthYear((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -278,11 +274,11 @@ func (rr *Routes) PaginationOrderByMonthYear(w http.ResponseWriter, r *http.Requ
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationOrderByMonthDocument gets page list of invoices ordered by month and document, 10 invoices per page
 func (rr *Routes) PaginationOrderByMonthDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
-	results, err := rr.Db.PaginationOrderByMonthDocument(offset)
+	page, err := strconv.Atoi(params["page"])
+	results, err := rr.Db.PaginationOrderByMonthDocument((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -293,11 +289,11 @@ func (rr *Routes) PaginationOrderByMonthDocument(w http.ResponseWriter, r *http.
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// PaginationOrderByYearDocument gets page list of invoices ordered by year and document, 10 invoices per page
 func (rr *Routes) PaginationOrderByYearDocument(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
 	params := mux.Vars(r)
-	offset, err := strconv.Atoi(params["offset"])
-	results, err := rr.Db.PaginationOrderByYearDocument(offset)
+	page, err := strconv.Atoi(params["page"])
+	results, err := rr.Db.PaginationOrderByYearDocument((page-1)*10)
 	if err != nil {
 		panic(err.Error())
 	} else {
@@ -308,12 +304,19 @@ func (rr *Routes) PaginationOrderByYearDocument(w http.ResponseWriter, r *http.R
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(results)
 }
-//
+// GenerateToken generates token for authenticated user
 func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	var u entities.User
+	var user entities.User
+	var err error
 	u.Username = r.Header.Get("username")
 	u.Password = r.Header.Get("password")
-	//compare the user from the request, with the one we defined:
+	user.Username, user.Password, err = rr.Db.GetUser(u.Username,u.Password)
+	if err != nil {
+		panic(err)
+		return
+	}
+	//compare the user from the request, with the one defined in database:
 	if user.Username != u.Username || user.Password != u.Password {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -334,7 +337,7 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		"refresh_token": token.RefreshToken,
 	}
 	w.Header().Add("Content-Type", "application/json")
-	//w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(tokens)

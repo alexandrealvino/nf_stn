@@ -21,9 +21,7 @@ create table users
     id        int auto_increment
         primary key,
     username  varchar(20)  not null,
-    password  char(8)      not null,
-    token     varchar(256) null,
-    createdAt datetime     null
+    password  char(8)      not null
 );
 
 # Invoice

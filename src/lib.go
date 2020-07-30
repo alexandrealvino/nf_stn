@@ -44,7 +44,6 @@ func HashAndSalt(pwd string) string {
 	}
 	return string(hash)
 }
-
 // ComparePasswords compares the hash stored in the database
 // with the hash generated from the given password
 // Since we'll be getting the hashed password from the DB it
@@ -94,7 +93,7 @@ func CreateToken(userid uint64, username string) (*entities.TokenDetails, error)
 	}
 	return td, nil
 }
-
+//
 func CreateAuth(userid uint64, td *entities.TokenDetails) error {
 	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
 	rt := time.Unix(td.RtExpires, 0)

@@ -15,15 +15,15 @@ type App struct {
 	Db *sql.DB
 }
 
-// Initialize initiates the db connection
+// Initialize initiates the db connection and redis
 func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
 	var err error
+	// Initializing db connection
 	a.Db, err = sql.Open(dbdriver, dbuser+":"+dbpass+"@tcp(127.0.0.1:3306)/"+dbname)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//Initializing redis
+	// Initializing redis
 	dsn := os.Getenv("REDIS_DSN") // TODO env
 	if len(dsn) == 0 {
 		dsn = "localhost:6379"

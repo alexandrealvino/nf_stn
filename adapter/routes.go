@@ -339,40 +339,4 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(tokens)
 }
-////
-//func (rr *Routes) Authentication(next http.HandlerFunc) http.HandlerFunc { // get invoices and returns in json format
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		//Login(w http.ResponseWriter, r *http.Request)
-//		var user = entities.User{
-//			ID:       1,
-//			Username: "username",
-//			Password: "password",
-//		}
-//		var u entities.User
-//		r.Header.Set("Content-Type", "application/json")
-//		b, err := ioutil.ReadAll(r.Body)
-//		if err != nil {
-//			panic(err.Error())
-//		}
-//		err = json.Unmarshal(b, &u)
-//		//compare the user from the request, with the one we defined:
-//		if user.Username != u.Username || user.Password != u.Password {
-//			w.WriteHeader(http.StatusUnauthorized)
-//			return
-//		}
-//		//next(w, r)
-//		token, err := src.CreateToken(user.ID, user.Username)
-//		if err != nil {
-//			panic(err)
-//			return
-//		}
-//		w.Header().Add("Content-Type", "application/json")
-//		w.WriteHeader(http.StatusOK)
-//		encoder := json.NewEncoder(w)
-//		encoder.SetIndent("", "\t")
-//		_ = encoder.Encode(token)
-//		next(w, r)
-//	}
-//}
-////
 //

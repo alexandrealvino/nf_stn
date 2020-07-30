@@ -113,7 +113,7 @@ func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 	}
 	return inv, err
 }
-
+//
 func (ms *MySql) GetTokenByUsername(username string) (string, error) { // get ticker by id
 	result, err := db.Db.Query("SELECT token FROM nf_stn.users WHERE username = ?", username)
 	if err != nil {

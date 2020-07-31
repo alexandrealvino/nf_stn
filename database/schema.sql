@@ -8,10 +8,10 @@ create table invoices
         primary key,
     document       varchar(14)                            not null,
     description    varchar(256)                           not null,
-    amount         float(64, 2)                           not null,
+    amount         bigint                           not null,
     referenceMonth int                                    not null,
     referenceYear  int                                    not null,
-    isActive       tinyint  default 1                     not null,
+    isActive       bool  default 1                     not null,
     createdAt      datetime default CURRENT_TIMESTAMP     not null,
     deactivatedAt  datetime default '2020-01-01 00:00:00-00:01' ON UPDATE CURRENT_TIMESTAMP
 );
@@ -23,6 +23,11 @@ create table users
     username  varchar(20)  not null,
     password  char(8)      not null
 );
+
+# botar indix aonde eu busco e index composto, username unico
+# implementar hash
+
+CREATE INDEX IDX_INVOICES_DOCUMENT_ISACTIVE ON invoices (document,referenceMonth);
 
 INSERT INTO nf_stn.users (username, password) VALUES ("username","password");
 # Invoice

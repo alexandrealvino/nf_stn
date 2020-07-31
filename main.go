@@ -56,6 +56,7 @@ func main() {
 
 	//router.HandleFunc("/api/createTodo", middleware.CreateTodo).Methods("POST") // creates todo
 
+	//arrumar rotas, erros, log erros, redis fetch, struct
 	log.Fatal(http.ListenAndServe(":8000", router)) // if error return fatal log
 }
 

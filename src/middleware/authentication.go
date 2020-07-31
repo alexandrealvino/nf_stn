@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"nf_stn/config"
 	"os"
 	"strconv"
 	"strings"
@@ -216,18 +217,16 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 	}
 }
-//
+// FetchAuth fetchs
+func FetchAuth(authD *entities.AccessDetails) (uint64, error) {
+	userid, err := config.Client.Get(authD.AccessUUID).Result()
+	if err != nil {
+		return 0, err
+	}
+	userID, _ := strconv.ParseUint(userid, 10, 64)
+	return userID, nil
+}
 
-//
-//func FetchAuth(authD *entities.AccessDetails) (uint64, error) {
-//	userid, err := config.Client.Get(authD.AccessUuid).Result()
-//	if err != nil {
-//		return 0, err
-//	}
-//	userID, _ := strconv.ParseUint(userid, 10, 64)
-//	return userID, nil
-//}
-//
 //func CreateTodo(w http.ResponseWriter, r *http.Request) {
 //	var td *entities.Todo
 //	r.Header.Set("Content-Type", "application/json")

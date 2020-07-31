@@ -8,6 +8,7 @@ type DataBaseConfig interface {
 	DbUser() string
 	DbPass() string
 	DbName() string
+	URL()    string
 }
 // Config struct
 type Config struct {}
@@ -25,5 +26,9 @@ func (c *Config) DbPass() string {
 }
 // DbName returns the db name env variable
 func (c *Config) DbName() string {
+	return os.Getenv("MYSQL_DATABASE")
+}
+// DbName returns the db name env variable
+func (c *Config) URL() string {
 	return os.Getenv("MYSQL_DATABASE")
 }

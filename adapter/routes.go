@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"nf_stn/authentication"
 	"nf_stn/database"
 	"nf_stn/entities"
+	"nf_stn/lib"
+
 	//"nf_stn/src"
 	"strconv"
 	//"github.com/golang/mock"
@@ -76,12 +79,14 @@ func (rr *Routes) InsertInvoice(w http.ResponseWriter, r *http.Request) {
 }
 // DeleteInvoice makes the logic deletion of the invoice by the given ID in the rr.Db
 func (rr *Routes) DeleteInvoice(w http.ResponseWriter, r *http.Request) {
-	ID , _ := strconv.Atoi(r.FormValue("ID"))
-	idNotInList, err := rr.Db.GetInvoiceByID(ID)
+	params := mux.Vars(r)
+	ID, _ := strconv.Atoi(params["ID"])
+
+	idDb, err := rr.Db.GetInvoiceByID(ID)
 	if err != nil {
-		panic(err.Error())
+		return
 	}
-	if (idNotInList == entities.Invoice{}) {
+	if (idDb == entities.Invoice{}) {
 		println("id not found!")
 		w.WriteHeader(http.StatusNotFound)
 	} else {
@@ -92,7 +97,7 @@ func (rr *Routes) DeleteInvoice(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 	deletedID := map[string]int{
-		"ID": idNotInList.ID,
+		"deletedID": idDb.ID,
 	}
 	w.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -153,8 +158,6 @@ func (rr *Routes) PatchInvoice(w http.ResponseWriter, r *http.Request) {
 }
 // Pagination gets page list of invoices ordered by id, 10 invoices per page
 func (rr *Routes) Pagination(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
-	//params := mux.Vars(r)
-	//page, err := strconv.Atoi(params["page"])
 	page , _ := strconv.Atoi(r.FormValue("page"))
 	results, err := rr.Db.Pagination((page-1)*10)
 	if err != nil {
@@ -169,9 +172,8 @@ func (rr *Routes) Pagination(w http.ResponseWriter, r *http.Request) { // get in
 }
 // PaginationByMonth gets page list of invoices by month, 10 invoices per page
 func (rr *Routes) PaginationByMonth(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
-	params := mux.Vars(r)
-	page, err := strconv.Atoi(params["page"])
-	referenceMonth, err := strconv.Atoi(params["referenceMonth"])
+	page , _ := strconv.Atoi(r.FormValue("page"))
+	referenceMonth, err := strconv.Atoi(r.FormValue("referenceMonth"))
 	results, err := rr.Db.PaginationByMonth((page-1)*10,referenceMonth)
 	if err != nil {
 		panic(err.Error())
@@ -307,18 +309,19 @@ func (rr *Routes) PaginationOrderByYearDocument(w http.ResponseWriter, r *http.R
 }
 // GenerateToken generates token for authenticated user
 func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
-	var u entities.User
-	var user entities.User
+	var user, u entities.User
 	var err error
 	u.Username = r.Header.Get("username")
-	u.Password = r.Header.Get("password")
-	user.ID,user.Username, user.Password, err = rr.Db.GetUser(u.Username,u.Password)
+	pwd := r.Header.Get("password")
+	//u.Hash = r.Header.Get("password")
+	user.ID,user.Username, user.Hash, err = rr.Db.GetUser(u.Username)
 	if err != nil {
-		panic(err)
+		log.Error("user status: not found!")
 		return
 	}
 	//compare the user from the request, with the one defined in database:
-	if user.Username != u.Username || user.Password != u.Password {
+	isOk := lib.ComparePasswords(user.Hash,pwd)
+	if isOk != true {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -344,3 +347,40 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	_ = encoder.Encode(tokens)
 }
 //
+
+
+// PaginationByMonth gets page list of invoices by month, 10 invoices per page
+func (rr *Routes) PaginationTEST(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+	var params []interface{}
+	qStr := "SELECT SQL_CALC_FOUND_ROWS id,referenceMonth,referenceYear,document,description,amount,isActive,createdAt,deactivatedAt FROM nf_stn.invoices WHERE "
+	limitStr := "LIMIT 10 OFFSET ?"
+	whereStr := ""
+
+	page , _ := strconv.Atoi(r.FormValue("page"))
+	referenceMonthStr := r.FormValue("referenceMonth")
+	referenceYearStr := r.FormValue("referenceMonth")
+	documentStr := r.FormValue("document")
+
+	if referenceMonthStr!="" {
+		whereStr += "referenceMonth=?"
+		if referenceYearStr!="" {
+			whereStr += "referenceMonth=? AND "
+		}
+	}
+	qStr += referenceMonthStr + referenceYearStr
+	//document := r.FormValue("document")
+	referenceMonth,_ := strconv.Atoi(referenceMonthStr)
+	log.Println(qStr,referenceMonthStr,referenceYearStr,documentStr,limitStr,whereStr,params,page,referenceMonth)
+
+
+	results, err := rr.Db.PaginationTEST(qStr,referenceMonth)
+	if err != nil {
+		panic(err.Error())
+	} else {
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "\t")
+	_ = encoder.Encode(results)
+}

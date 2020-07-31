@@ -17,6 +17,7 @@ import (
 
 // Token interface
 type Token interface {
+	Init()
 	ExtractToken(r *http.Request) string
 	VerifyToken(r *http.Request) (*jwt.Token, error)
 	TokenValid(r *http.Request) error

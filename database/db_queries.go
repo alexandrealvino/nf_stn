@@ -14,14 +14,13 @@ type DataBase interface {
 	Init()
 	GetAll() ([]entities.Invoice, error)
 	GetInvoiceByDocument(document string) (entities.Invoice, error)
-	GetUser(username, password string) (int, string, string, error)
+	GetUser(username string) (int, string, string, error)
 	GetInvoiceByID(id int) (entities.Invoice, error)
 	InsertInvoice(invoice entities.Invoice) error
 	DeleteInvoice(id int) error
 	UpdateInvoice(invoice entities.Invoice) error
 	PatchInvoice(invoice entities.Invoice) error
 	InvoiceExists(document string) (entities.Invoice, error)
-	ClearTable()
 	Pagination(offset int) ([]entities.Invoice, error)
 	PaginationOrderByMonth(offset int) ([]entities.Invoice, error)
 	PaginationOrderByYear(offset int) ([]entities.Invoice, error)
@@ -32,6 +31,8 @@ type DataBase interface {
 	PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error)
 	PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error)
 	PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
+
+	PaginationTEST(query string, referenceMonth int) ([]entities.Invoice, error)
 }
 
 // MySQL struct
@@ -46,7 +47,7 @@ var db config.App
 func (ms *MySQL) Init()  {
 	//db.Initialize(ms.Config.DbDriver(), ms.Config.DbUser(), ms.Config.DbPass(), ms.Config.DbName())
 	db.Initialize(ms.Config.DbDriver(), ms.Config.Conn())
-	log.Println("connected")
+	log.Println("db connected")
 }
 // GetAll gets all the rows of the invoices db
 func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoices
@@ -83,20 +84,20 @@ func (ms *MySQL) GetInvoiceByDocument(document string) (entities.Invoice, error)
 	return inv, err
 }
 // GetUser gets the user credentials, if exists, by the given profile in the request
-func (ms *MySQL) GetUser(username, password string) (int,string, string, error) { // get acc data by profile
-	result, err := db.Db.Query("SELECT id,username, password FROM nf_stn.users WHERE username = ? AND password=?;", username, password)
+func (ms *MySQL) GetUser(username string) (int,string, string, error) { // get acc data by profile
+	result, err := db.Db.Query("SELECT id,username, hash FROM nf_stn.users WHERE username = ?;", username)
 	if err != nil {
 		panic(err.Error())
 	}
 	var u entities.User
 	for result.Next() {
-		err = result.Scan(&u.ID,&u.Username, &u.Password)
+		err = result.Scan(&u.ID,&u.Username, &u.Hash)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
 	log.Println("successfully got user!")
-	return u.ID,u.Username, u.Password, err
+	return u.ID,u.Username, u.Hash, err
 }
 // GetInvoiceByID gets the invoice by the given ID
 func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
@@ -175,10 +176,6 @@ func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // c
 		log.Println("Invoice exists!")
 	}
 	return invoice, err
-}
-// ClearTable truncates the invoices table
-func (ms *MySQL) ClearTable() {
-	_, _ = db.Db.Exec("TRUNCATE TABLE nf_stn.invoices")
 }
 // Pagination returns page list of invoices ordered by id, 10 invoices per page
 func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
@@ -441,3 +438,30 @@ func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 	return invoicesList, err
 }
 //
+
+// PaginationByMonth returns page list of invoices ordered by month, 10 invoices per page
+func (ms *MySQL) PaginationTEST(query string, referenceMonth int) ([]entities.Invoice, error) {
+	results, err := db.Db.Query(query, referenceMonth)
+	if err != nil {
+		panic(err.Error())
+	}
+	inv := entities.Invoice{}
+	var invoicesList []entities.Invoice
+	for results.Next() {
+		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
+		if err != nil {
+			panic(err.Error())
+		}
+		invoicesList = append(invoicesList, inv)
+	}
+	lines, _ := db.Db.Query("SELECT FOUND_ROWS();")
+	var total int
+	for lines.Next() {
+		_ = lines.Scan(&total)
+	}
+	//if offset > total {
+	//	log.Println("Index out of range!")
+	//}
+	log.Println("successfully got invoice by month list!")
+	return invoicesList, err
+}

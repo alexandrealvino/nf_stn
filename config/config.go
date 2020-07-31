@@ -24,7 +24,6 @@ func (a *App) Initialize(dbDriver,conn string) {
 // ConnectRedis start a connection with redis
 func (a *App) ConnectRedis(dsn string) {
 	// Initializing redis
-	log.Println("redis")
 	a.Clt = redis.NewClient(&redis.Options{
 		Addr: dsn, //redis port
 	})

@@ -34,13 +34,11 @@ func main() {
 	// router handlers
 
 	router.Handle("/api",middleware.JoinMiddleWares(routes.GetAll)).Methods("GET")                                                             // get invoices list and returns data in json format
-
-	//router.Handle("/api", middleware.Logger(middleware.TokenAuthMiddleware(routes.GetAll))).Methods("GET")                                                             // get invoices list and returns data in json format
-	router.Handle("/api/getInvoiceByDocument/", middleware.JoinMiddleWares(routes.GetInvoiceByDocument)).Methods("GET")                         // get invoice by document and returns data in json format
-	router.Handle("/api/insertInvoice", middleware.JoinMiddleWares(routes.InsertInvoice)).Methods("POST")                                       // insert invoice
-	router.Handle("/api/del", middleware.JoinMiddleWares(routes.DeleteInvoice)).Methods("DELETE")                                               // set isActive = 0 for logic deletion
-	router.Handle("/api/up/", middleware.JoinMiddleWares(routes.UpdateInvoice)).Methods("PUT")                                                  // update invoice
-	router.Handle("/api/patch/", middleware.JoinMiddleWares(routes.PatchInvoice)).Methods("PATCH")                                              // patch invoice
+	router.Handle("/api/", middleware.JoinMiddleWares(routes.InsertInvoice)).Methods("POST")                                       // insert invoice
+	router.Handle("/api/", middleware.JoinMiddleWares(routes.UpdateInvoice)).Methods("PUT")                                                  // update invoice
+	router.Handle("/api/", middleware.JoinMiddleWares(routes.PatchInvoice)).Methods("PATCH")                                              // patch invoice
+	router.Handle("/api/{document}", middleware.JoinMiddleWares(routes.GetInvoiceByDocument)).Methods("GET")                         // get invoice by document and returns data in json format
+	router.Handle("/api/{ID}", middleware.JoinMiddleWares(routes.DeleteInvoice)).Methods("DELETE")                                               // set isActive = 0 for logic deletion
 	router.Handle("/api/pagination", middleware.JoinMiddleWares(routes.Pagination)).Methods("GET")                                              // paginates by id, 10 invoices per page
 	router.Handle("/api/pagination/{offset}/month/{referenceMonth}", middleware.JoinMiddleWares(routes.PaginationByMonth)).Methods("GET")       // paginates by month, 10 invoices per page
 	router.Handle("/api/pagination/{offset}/year/{referenceYear}", middleware.JoinMiddleWares(routes.PaginationByYear)).Methods("GET")          // paginates by year, 10 invoices per page

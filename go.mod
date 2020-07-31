@@ -12,5 +12,6 @@ require (
 	github.com/prometheus/client_golang v1.7.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/twinj/uuid v1.0.0
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect
 )

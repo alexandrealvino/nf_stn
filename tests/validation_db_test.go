@@ -222,7 +222,7 @@ func TestDeleteInvoice(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-	expected := `{"ID":1}`
+	expected := `{"deletedID":1}`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
 	if err != nil {

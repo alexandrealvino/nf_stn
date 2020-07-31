@@ -20,7 +20,7 @@ func main() {
 	// initializing app
 
 	cfg :=config.Config{}
-	db := database.MySql{
+	db := database.MySQL{
 		Config: &cfg,
 	}
 	db.Init()

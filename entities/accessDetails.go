@@ -2,6 +2,6 @@ package entities
 
 // AccessDetails struct
 type AccessDetails struct {
-	AccessUuid string
-	UserId   uint64
+	AccessUUID string
+	UserID   uint64
 }

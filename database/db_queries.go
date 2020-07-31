@@ -34,8 +34,8 @@ type DataBase interface {
 	PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
 }
 
-// MySql struct
-type MySql struct {
+// MySQL struct
+type MySQL struct {
 	Config config.DataBaseConfig
 }
 
@@ -43,11 +43,11 @@ type MySql struct {
 var db config.App
 
 // Init initializes db and redis connections
-func (ms *MySql) Init()  {
+func (ms *MySQL) Init()  {
 	db.Initialize(ms.Config.DbDriver(), ms.Config.DbUser(), ms.Config.DbPass(), ms.Config.DbName())
 }
 // GetAll gets all the rows of the invoices db
-func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoices
+func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoices
 	results, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY id")
 	if err != nil {
 		panic(err.Error())
@@ -65,7 +65,7 @@ func (ms *MySql) GetAll() ([]entities.Invoice, error) { // get list of all invoi
 	return invoicesList, err
 }
 // GetInvoiceByDocument gets the invoice by the document value
-func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error) { // get invoice by document
+func (ms *MySQL) GetInvoiceByDocument(document string) (entities.Invoice, error) { // get invoice by document
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ?;", document)
 	if err != nil {
 		panic(err.Error())
@@ -81,7 +81,7 @@ func (ms *MySql) GetInvoiceByDocument(document string) (entities.Invoice, error)
 	return inv, err
 }
 // GetUser gets the user credentials, if exists, by the given profile in the request
-func (ms *MySql) GetUser(username, password string) (string, string, error) { // get acc data by profile
+func (ms *MySQL) GetUser(username, password string) (string, string, error) { // get acc data by profile
 	result, err := db.Db.Query("SELECT username, password FROM nf_stn.users WHERE username = ?;", username)
 	if err != nil {
 		panic(err.Error())
@@ -97,7 +97,7 @@ func (ms *MySql) GetUser(username, password string) (string, string, error) { //
 	return u.Username, u.Password, err
 }
 // GetInvoiceByID gets the invoice by the given ID
-func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
+func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE id = ?", id)
 	if err != nil {
 		panic(err.Error())
@@ -115,7 +115,7 @@ func (ms *MySql) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 	return inv, err
 }
 // InsertInvoice inserts the given invoice to invoices db
-func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoice
+func (ms *MySQL) InsertInvoice(invoice entities.Invoice) error { // insert invoice
 	//monthDay, month, hour, min, sec, year := time.Now().Day(), time.Now().Month(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), time.Now().Year()
 	//date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
 	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
@@ -130,7 +130,7 @@ func (ms *MySql) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 	return err
 }
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
-func (ms *MySql) DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
+func (ms *MySQL) DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices SET isActive = ? WHERE id = ?;", 0, id)
 	if err != nil {
 		panic(err.Error())
@@ -139,7 +139,7 @@ func (ms *MySql) DeleteInvoice(id int) error { // set isActive = 0 for logic del
 	return err
 }
 // UpdateInvoice updates database values from the row of the given invoice
-func (ms *MySql) UpdateInvoice(invoice entities.Invoice) error { // update invoice
+func (ms *MySQL) UpdateInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
 	if err != nil {
 		panic(err.Error())
@@ -148,7 +148,7 @@ func (ms *MySql) UpdateInvoice(invoice entities.Invoice) error { // update invoi
 	return err
 }
 // PatchInvoice partially updates database values from the row of the given invoice
-func (ms *MySql) PatchInvoice(invoice entities.Invoice) error { // update invoice
+func (ms *MySQL) PatchInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
 	if err != nil {
 		panic(err.Error())
@@ -157,7 +157,7 @@ func (ms *MySql) PatchInvoice(invoice entities.Invoice) error { // update invoic
 	return err
 }
 // InvoiceExists checks if the given invoice document exists
-func (ms *MySql) InvoiceExists(document string) (entities.Invoice, error) { // checks if invoice is already exists
+func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // checks if invoice is already exists
 	result, err := db.Db.Query("SELECT id FROM nf_stn.invoices WHERE document = ?", document)
 	if err != nil {
 		panic(err.Error())
@@ -175,11 +175,11 @@ func (ms *MySql) InvoiceExists(document string) (entities.Invoice, error) { // c
 	return invoice, err
 }
 // ClearTable truncates the invoices table
-func (ms *MySql) ClearTable() {
+func (ms *MySQL) ClearTable() {
 	_, _ = db.Db.Exec("TRUNCATE TABLE nf_stn.invoices")
 }
 // Pagination returns page list of invoices ordered by id, 10 invoices per page
-func (ms *MySql) Pagination(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())
@@ -205,7 +205,7 @@ func (ms *MySql) Pagination(offset int) ([]entities.Invoice, error) {
 	return invoicesList, err
 }
 // PaginationByMonth returns page list of invoices ordered by month, 10 invoices per page
-func (ms *MySql) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceMonth = ? LIMIT 10 OFFSET ?;", referenceMonth, offset)
 	if err != nil {
 		panic(err.Error())
@@ -231,7 +231,7 @@ func (ms *MySql) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 	return invoicesList, err
 }
 // PaginationByYear returns page list of invoices ordered by year, 10 invoices per page
-func (ms *MySql) PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceYear = ? LIMIT 10 OFFSET ?;", referenceYear, offset)
 	if err != nil {
 		panic(err.Error())
@@ -257,7 +257,7 @@ func (ms *MySql) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 	return invoicesList, err
 }
 // PaginationByDocument returns page list of invoices ordered by document, 10 invoices per page
-func (ms *MySql) PaginationByDocument(offset int, document string) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ? LIMIT 10 OFFSET ?;", document, offset)
 	if err != nil {
 		panic(err.Error())
@@ -283,7 +283,7 @@ func (ms *MySql) PaginationByDocument(offset int, document string) ([]entities.I
 	return invoicesList, err
 }
 // PaginationOrderByMonth returns page list of invoices ordered by month, 10 invoices per page
-func (ms *MySql) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())
@@ -309,7 +309,7 @@ func (ms *MySql) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 	return invoicesList, err
 }
 // PaginationOrderByYear returns page list of invoices ordered by year, 10 invoices per page
-func (ms *MySql) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())
@@ -335,7 +335,7 @@ func (ms *MySql) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	return invoicesList, err
 }
 // PaginationOrderByDocument returns page list of invoices ordered by document, 10 invoices per page
-func (ms *MySql) PaginationOrderByDocument(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())
@@ -361,7 +361,7 @@ func (ms *MySql) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 	return invoicesList, err
 }
 // PaginationOrderByMonthYear returns page list of invoices ordered by month and year, 10 invoices per page
-func (ms *MySql) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())
@@ -387,7 +387,7 @@ func (ms *MySql) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 	return invoicesList, err
 }
 // PaginationOrderByMonthDocument returns page list of invoices ordered by month and document, 10 invoices per page
-func (ms *MySql) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, document LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())
@@ -413,7 +413,7 @@ func (ms *MySql) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 	return invoicesList, err
 }
 // PaginationOrderByYearDocument returns page list of invoices ordered by year and document, 10 invoices per page
-func (ms *MySql) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error) {
+func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document, referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
 		panic(err.Error())

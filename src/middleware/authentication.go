@@ -145,17 +145,17 @@ func ExtractTokenMetadata(r *http.Request) (*entities.AccessDetails, error) {
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
-		accessUuid, ok := claims["access_uuid"].(string)
+		accessUUID, ok := claims["access_uuid"].(string)
 		if !ok {
 			return nil, err
 		}
-		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		userID, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
 		if err != nil {
 			return nil, err
 		}
 		return &entities.AccessDetails{
-			AccessUuid: accessUuid,
-			UserId:   userId,
+			AccessUUID: accessUUID,
+			UserID:   userID,
 		}, nil
 	}
 	return nil, err
@@ -171,7 +171,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		_ = encoder.Encode("unauthorized")
 		return
 	}
-	deleted, delErr := src.DeleteAuth(tokenAuth.AccessUuid)
+	deleted, delErr := src.DeleteAuth(tokenAuth.AccessUUID)
 	if delErr != nil || deleted == 0 { //if any goes wrong
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -202,19 +202,18 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			encoder.SetIndent("", "\t")
 			_ = encoder.Encode(info)
 			return
-		} else {
-			w.Header().Add("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			info := map[string]string{
-				"authentication status": "authorized",
-				"method":                r.Method,
-				"content-type":          "application/json",
-			}
-			encoder := json.NewEncoder(w)
-			encoder.SetIndent("", "\t")
-			_ = encoder.Encode(info)
-			next(w, r)
 		}
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		info := map[string]string{
+			"authentication status": "authorized",
+			"method":                r.Method,
+			"content-type":          "application/json",
+		}
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode(info)
+		next(w, r)
 	}
 }
 //

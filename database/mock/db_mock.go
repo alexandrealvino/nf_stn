@@ -76,13 +76,14 @@ func (mr *MockDataBaseMockRecorder) GetInvoiceByDocument(document interface{}) *
 }
 
 // GetUser mocks base method
-func (m *MockDataBase) GetUser(username, password string) (string, string, error) {
+func (m *MockDataBase) GetUser(username, password string) (int, string, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUser", username, password)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[0].(string)
+	ret2, _ := ret[1].(string)
+	ret3, _ := ret[2].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GetUser indicates an expected call of GetUser

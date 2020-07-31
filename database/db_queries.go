@@ -1,10 +1,10 @@
 package database
 
 import (
-	"fmt"
+    log "github.com/sirupsen/logrus"
 	"nf_stn/config"
 	"nf_stn/entities"
-	"nf_stn/src"
+	"nf_stn/lib"
 )
 
 //go:generate  go run github.com/golang/mock/mockgen  -package mock -destination=./mock/db_mock.go -source=$GOFILE
@@ -14,7 +14,7 @@ type DataBase interface {
 	Init()
 	GetAll() ([]entities.Invoice, error)
 	GetInvoiceByDocument(document string) (entities.Invoice, error)
-	GetUser(username, password string) (string, string, error)
+	GetUser(username, password string) (int, string, string, error)
 	GetInvoiceByID(id int) (entities.Invoice, error)
 	InsertInvoice(invoice entities.Invoice) error
 	DeleteInvoice(id int) error
@@ -42,9 +42,11 @@ type MySQL struct {
 // db instantiation
 var db config.App
 
-// Init initializes db and redis connections
+// Init initializes db connection
 func (ms *MySQL) Init()  {
-	db.Initialize(ms.Config.DbDriver(), ms.Config.DbUser(), ms.Config.DbPass(), ms.Config.DbName())
+	//db.Initialize(ms.Config.DbDriver(), ms.Config.DbUser(), ms.Config.DbPass(), ms.Config.DbName())
+	db.Initialize(ms.Config.DbDriver(), ms.Config.Conn())
+	log.Println("connected")
 }
 // GetAll gets all the rows of the invoices db
 func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoices
@@ -61,7 +63,7 @@ func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoi
 		}
 		invoicesList = append(invoicesList, inv)
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // GetInvoiceByDocument gets the invoice by the document value
@@ -77,24 +79,24 @@ func (ms *MySQL) GetInvoiceByDocument(document string) (entities.Invoice, error)
 			panic(err.Error())
 		}
 	}
-	fmt.Println("Successfully got invoice!")
+	log.Println("successfully got invoice!")
 	return inv, err
 }
 // GetUser gets the user credentials, if exists, by the given profile in the request
-func (ms *MySQL) GetUser(username, password string) (string, string, error) { // get acc data by profile
-	result, err := db.Db.Query("SELECT username, password FROM nf_stn.users WHERE username = ?;", username)
+func (ms *MySQL) GetUser(username, password string) (int,string, string, error) { // get acc data by profile
+	result, err := db.Db.Query("SELECT id,username, password FROM nf_stn.users WHERE username = ? AND password=?;", username, password)
 	if err != nil {
 		panic(err.Error())
 	}
 	var u entities.User
 	for result.Next() {
-		err = result.Scan(&u.Username, &u.Password)
+		err = result.Scan(&u.ID,&u.Username, &u.Password)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
-	fmt.Println("Successfully got user!")
-	return u.Username, u.Password, err
+	log.Println("successfully got user!")
+	return u.ID,u.Username, u.Password, err
 }
 // GetInvoiceByID gets the invoice by the given ID
 func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
@@ -110,7 +112,7 @@ func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 		}
 	}
 	if (inv != entities.Invoice{}) {
-		fmt.Println("Successfully got invoice!")
+		log.Println("successfully got invoice!")
 	}
 	return inv, err
 }
@@ -120,13 +122,13 @@ func (ms *MySQL) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 	//date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
 	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
 	//now := date + " " + clock
-	now:=src.Now()
+	now:= lib.Now()
 	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt) VALUES (?, ?, ?, ?, ?, ?);",
 		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, now)
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("Successfully inserted invoice!")
+	log.Println("successfully inserted invoice!")
 	return err
 }
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
@@ -135,7 +137,7 @@ func (ms *MySQL) DeleteInvoice(id int) error { // set isActive = 0 for logic del
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("Successfully deleted invoice!")
+	log.Println("successfully deleted invoice!")
 	return err
 }
 // UpdateInvoice updates database values from the row of the given invoice
@@ -144,7 +146,7 @@ func (ms *MySQL) UpdateInvoice(invoice entities.Invoice) error { // update invoi
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("Successfully updated invoice!")
+	log.Println("successfully updated invoice!")
 	return err
 }
 // PatchInvoice partially updates database values from the row of the given invoice
@@ -153,7 +155,7 @@ func (ms *MySQL) PatchInvoice(invoice entities.Invoice) error { // update invoic
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("Successfully patched invoice!")
+	log.Println("successfully patched invoice!")
 	return err
 }
 // InvoiceExists checks if the given invoice document exists
@@ -170,7 +172,7 @@ func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // c
 		}
 	}
 	if (invoice != entities.Invoice{}) {
-		fmt.Println("Invoice exists!")
+		log.Println("Invoice exists!")
 	}
 	return invoice, err
 }
@@ -199,9 +201,9 @@ func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationByMonth returns page list of invoices ordered by month, 10 invoices per page
@@ -225,9 +227,9 @@ func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice by month list!")
+	log.Println("successfully got invoice by month list!")
 	return invoicesList, err
 }
 // PaginationByYear returns page list of invoices ordered by year, 10 invoices per page
@@ -251,9 +253,9 @@ func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice by year list!")
+	log.Println("successfully got invoice by year list!")
 	return invoicesList, err
 }
 // PaginationByDocument returns page list of invoices ordered by document, 10 invoices per page
@@ -277,9 +279,9 @@ func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.I
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice by year list!")
+	log.Println("successfully got invoice by year list!")
 	return invoicesList, err
 }
 // PaginationOrderByMonth returns page list of invoices ordered by month, 10 invoices per page
@@ -303,9 +305,9 @@ func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByYear returns page list of invoices ordered by year, 10 invoices per page
@@ -329,9 +331,9 @@ func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByDocument returns page list of invoices ordered by document, 10 invoices per page
@@ -355,9 +357,9 @@ func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByMonthYear returns page list of invoices ordered by month and year, 10 invoices per page
@@ -381,9 +383,9 @@ func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByMonthDocument returns page list of invoices ordered by month and document, 10 invoices per page
@@ -407,9 +409,9 @@ func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByYearDocument returns page list of invoices ordered by year and document, 10 invoices per page
@@ -433,9 +435,9 @@ func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		fmt.Println("Index out of range!")
+		log.Println("Index out of range!")
 	}
-	fmt.Println("Successfully got invoice list!")
+	log.Println("successfully got invoice list!")
 	return invoicesList, err
 }
 //

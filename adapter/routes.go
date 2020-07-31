@@ -6,10 +6,9 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"nf_stn/authentication"
 	"nf_stn/database"
 	"nf_stn/entities"
-	"nf_stn/src"
-
 	//"nf_stn/src"
 	"strconv"
 	//"github.com/golang/mock"
@@ -18,6 +17,7 @@ import (
 // Routes struct
 type Routes struct {
 	Db database.DataBase
+	Au authentication.Token
 }
 
 // GetAll gets all invoices and returns in json format
@@ -312,7 +312,7 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	var err error
 	u.Username = r.Header.Get("username")
 	u.Password = r.Header.Get("password")
-	user.Username, user.Password, err = rr.Db.GetUser(u.Username,u.Password)
+	user.ID,user.Username, user.Password, err = rr.Db.GetUser(u.Username,u.Password)
 	if err != nil {
 		panic(err)
 		return
@@ -322,12 +322,12 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	token, err := src.CreateToken(user.ID, u.Username)
+	token, err := rr.Au.CreateToken(uint64(user.ID), user.Username)
 	if err != nil {
 		panic(err)
 		return
 	}
-	saveErr := src.CreateAuth(user.ID,token)
+	saveErr := rr.Au.CreateAuth(uint64(user.ID),token)
 	if saveErr != nil {
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnprocessableEntity)

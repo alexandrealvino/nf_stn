@@ -5,10 +5,11 @@ import "os"
 // DataBaseConfig interface
 type DataBaseConfig interface {
 	DbDriver() string
-	DbUser() string
-	DbPass() string
-	DbName() string
-	URL()    string
+	DbUser()   string
+	DbPass()   string
+	DbName()   string
+	URL()      string
+	Conn()     string
 }
 // Config struct
 type Config struct {}
@@ -28,7 +29,24 @@ func (c *Config) DbPass() string {
 func (c *Config) DbName() string {
 	return os.Getenv("MYSQL_DATABASE")
 }
-// DbName returns the db name env variable
+// URL returns the URL env variable
 func (c *Config) URL() string {
-	return os.Getenv("MYSQL_DATABASE")
+	return os.Getenv("URL")
+}
+// Conn returns the connection string
+func (c *Config) Conn() string {
+	conn := c.DbUser()+":"+c.DbPass()+"@tcp("+c.URL()+")/"+c.DbName()
+	return conn
+}
+
+// RedisConfig interface
+type RedisConfig interface {
+	DSN() string
+}
+// RedisCfg struct
+type RedisCfg struct {}
+
+// DSN returns the db name env variable
+func (r *RedisCfg) DSN() string {
+	return os.Getenv("REDIS_DSN")
 }

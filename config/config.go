@@ -5,35 +5,32 @@ import (
 	"github.com/go-redis/redis/v7"
 	_ "github.com/go-sql-driver/mysql" // importing driver mysql
 	"log"
-	"os"
 )
-
-// Client instantiation
-var  Client *redis.Client
 
 // App class object for db instantiation
 type App struct {
 	Db *sql.DB
+	Clt *redis.Client
 }
-
 // Initialize initiates the db connection and redis
-func (a *App) Initialize(dbDriver, dbUser, dbPass, dbName string) {
+func (a *App) Initialize(dbDriver,conn string) {
 	var err error
 	// Initializing db connection
-	a.Db, err = sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp(127.0.0.1:3306)/"+dbName)
+	a.Db, err = sql.Open(dbDriver,conn)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+// ConnectRedis start a connection with redis
+func (a *App) ConnectRedis(dsn string) {
 	// Initializing redis
-	dsn := os.Getenv("REDIS_DSN") // TODO env
-	if len(dsn) == 0 {
-		dsn = "localhost:6379"
-	}
-	Client = redis.NewClient(&redis.Options{
+	log.Println("redis")
+	a.Clt = redis.NewClient(&redis.Options{
 		Addr: dsn, //redis port
 	})
-	_, err = Client.Ping().Result()
+	_, err := a.Clt.Ping().Result()
 	if err != nil {
 		panic(err)
 	}
 }
+//

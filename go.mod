@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/myesui/uuid v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.7.1
+	github.com/sirupsen/logrus v1.4.2
 	github.com/twinj/uuid v1.0.0
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect
 )

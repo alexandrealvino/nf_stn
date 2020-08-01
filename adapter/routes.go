@@ -12,8 +12,9 @@ import (
 	"nf_stn/entities"
 	"nf_stn/lib"
 
-	//"nf_stn/src"
 	"strconv"
+	//"nf_stn/src"
+	"strings"
 	//"github.com/golang/mock"
 )
 
@@ -24,7 +25,7 @@ type Routes struct {
 }
 
 // GetAll gets all invoices and returns in json format
-func (rr *Routes) GetAll(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
+func (rr *Routes) GetAll(w http.ResponseWriter, _ *http.Request) { // get invoices and returns in json format
 	var results []entities.Invoice
 	results, err := rr.Db.GetAll()
 	if err != nil {
@@ -347,41 +348,127 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode(tokens)
 }
-//
-
-
-// PaginationByMonth gets page list of invoices by month, 10 invoices per page
+// PaginationTEST gets page list of invoices by the select parameters conditions, 10 invoices per page
 func (rr *Routes) PaginationTEST(w http.ResponseWriter, r *http.Request) { // get invoices and returns in json format
-	var params []interface{}
-	qStr := "SELECT SQL_CALC_FOUND_ROWS id,referenceMonth,referenceYear,document,description,amount,isActive,createdAt,deactivatedAt FROM nf_stn.invoices WHERE "
-	limitStr := "LIMIT 10 OFFSET ?"
-	whereStr := ""
+	var args []interface{}
 
+	// setting query strings units
+	qStr := "SELECT SQL_CALC_FOUND_ROWS id,referenceMonth,referenceYear,document,description,amount,isActive,createdAt,deactivatedAt FROM nf_stn.invoices "
+	whereStr := "WHERE "
+	orderByStr := "ORDER BY "
+	closeStr := "LIMIT 10 OFFSET ?;"
+
+	// getting request parameters
 	page , _ := strconv.Atoi(r.FormValue("page"))
-	referenceMonthStr := r.FormValue("referenceMonth")
-	referenceYearStr := r.FormValue("referenceMonth")
-	documentStr := r.FormValue("document")
+	orderBy := r.FormValue("orderBy")
+	referenceMonth, _ := strconv.Atoi(r.FormValue("referenceMonth"))
+	referenceYear, _ := strconv.Atoi(r.FormValue("referenceYear"))
+	document := r.FormValue("document")
 
-	if referenceMonthStr!="" {
-		whereStr += "referenceMonth=?"
-		if referenceYearStr!="" {
-			whereStr += "referenceMonth=? AND "
+	// handling where conditions
+	if referenceMonth!= 0 || referenceYear != 0 || document !="" {
+		qStr += whereStr
+
+		andCount := 0
+		if referenceMonth != 0 {
+			qStr += "referenceMonth=? "
+			args = append(args,referenceMonth)
+			andCount += 1
+		}
+
+		if referenceYear != 0 {
+			if andCount != 0 {
+				qStr += "AND "
+			}
+			qStr += "referenceYear=? "
+			args = append(args, referenceYear)
+			andCount += 1
+		}
+
+		if document != "" {
+		if andCount != 0 {
+			qStr += "AND "
+		}
+		qStr += "document=? "
+		args = append(args, document)
+			andCount += 1
+	}
+	}
+
+	// handling order by conditions
+	if orderBy!="" {
+		qStr += orderByStr
+		virg := strings.Count(orderBy,",")
+		if strings.Contains(orderBy,"referenceMonth") == true {
+			qStr += "referenceMonth "
+			if virg != 0 {
+				qStr += ","
+				virg -= 1
+			}
+		}
+		if strings.Contains(orderBy,"referenceYear") == true {
+			qStr += "referenceYear "
+			if virg != 0 {
+				qStr += ","
+				virg -= 1
+			}
+		}
+		if strings.Contains(orderBy,"document") == true {
+			qStr += "document "
+			if virg != 0 {
+				qStr += ","
+				virg -= 1
+			}
 		}
 	}
-	qStr += referenceMonthStr + referenceYearStr
-	//document := r.FormValue("document")
-	referenceMonth,_ := strconv.Atoi(referenceMonthStr)
-	log.Println(qStr,referenceMonthStr,referenceYearStr,documentStr,limitStr,whereStr,params,page,referenceMonth)
 
-
-	results, err := rr.Db.PaginationTEST(qStr,referenceMonth)
-	if err != nil {
-		panic(err.Error())
-	} else {
+	// closing query string
+	qStr += closeStr
+	// calculating offset
+	offset := (page-1)*10
+	args = append(args, offset)
+	log.Println(qStr,args)
+	var results []entities.Invoice
+	info := map[string]interface{}{
+		"authentication status":  "authorized",
+		"method": r.Method,
+		"content-type": "application/json",
+		"page": page,
 	}
-	w.WriteHeader(http.StatusOK)
+	if page <= 0 {
+		qStr = "SELECT SQL_CALC_FOUND_ROWS id,referenceMonth,referenceYear,document,description,amount,isActive,createdAt,deactivatedAt FROM nf_stn.invoices LIMIT 10;"
+		results, rowsFound ,err := rr.Db.PaginationTEST(qStr)
+		if err != nil {
+			log.Error(err.Error())
+		}
+		info["invoices found"] = rowsFound
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		if page*10 <= rowsFound + 9 {
+			_ = encoder.Encode(info)
+			_ = encoder.Encode(results)
+		} else {
+			info["page"] = "not found"
+			_ = encoder.Encode(info)
+		}
+		return
+	}
+	results, rowsFound, err := rr.Db.PaginationTEST(qStr,args...)
+	if err != nil {
+		log.Error(err.Error())
+	}
+	info["invoices found"] = rowsFound
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "\t")
-	_ = encoder.Encode(results)
+	if page*10 <= rowsFound + 9 {
+		_ = encoder.Encode(info)
+		_ = encoder.Encode(results)
+	} else {
+		info["page"] = "not found"
+		_ = encoder.Encode(info)
+	}
 }

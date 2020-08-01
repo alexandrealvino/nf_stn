@@ -31,8 +31,8 @@ func main() {
 		Db: &db,
 		Au: &tk,
 	}
-	// router handlers
 
+	// router handlers
 	router.Handle("/api",middleware.JoinMiddleWares(routes.GetAll)).Methods("GET")                                                             // get invoices list and returns data in json format
 	router.Handle("/api/", middleware.JoinMiddleWares(routes.InsertInvoice)).Methods("POST")                                       // insert invoice
 	router.Handle("/api/", middleware.JoinMiddleWares(routes.UpdateInvoice)).Methods("PUT")                                                  // update invoice
@@ -51,12 +51,14 @@ func main() {
 	router.Handle("/api/pagination/{offset}/year/document/", middleware.JoinMiddleWares(routes.PaginationOrderByYearDocument)).Methods("GET")   // paginates by year and document, 10 invoices per page
 
 
+	router.HandleFunc("/api/test/", routes.PaginationTEST).Methods("GET")
+
 	router.HandleFunc("/api/login", routes.GenerateToken).Methods("POST")   // generates token for authenticated user
 	router.HandleFunc("/api/logout", tk.Logout).Methods("POST") // logout user
 
 	router.Handle("/metrics", promhttp.Handler())				// get metrics for future metrics handler
 
-	//arrumar rotas, erros, log erros
+	//arrumar rotas
 	log.Fatal(http.ListenAndServe(":8000", router)) // if error return fatal log
 }
 

@@ -32,7 +32,7 @@ type DataBase interface {
 	PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error)
 	PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
 
-	PaginationTEST(query string, referenceMonth int) ([]entities.Invoice, error)
+	PaginationTEST(query string, args ...interface{}) ([]entities.Invoice, int, error)
 }
 
 // MySQL struct
@@ -61,11 +61,11 @@ func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoi
 	for results.Next() {
 		err = results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Error(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // GetInvoiceByDocument gets the invoice by the document value
@@ -73,16 +73,16 @@ func (ms *MySQL) GetInvoiceByDocument(document string) (entities.Invoice, error)
 	inv := entities.Invoice{}
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ?;", document)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 		return inv, err
 	}
 	for result.Next() {
 		err = result.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Error(err.Error())
 		}
 	}
-	log.Println("successfully got invoice!")
+	log.Info("successfully got invoice!")
 	return inv, err
 }
 // GetUser gets the user credentials, if exists, by the given profile in the request
@@ -90,16 +90,16 @@ func (ms *MySQL) GetUser(username string) (int,string, string, error) { // get a
 	var u entities.User
 	result, err := db.Db.Query("SELECT id,username, hash FROM nf_stn.users WHERE username = ?;", username)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 		return u.ID,u.Username,u.Hash, err
 	}
 	for result.Next() {
 		err = result.Scan(&u.ID,&u.Username, &u.Hash)
 		if err != nil {
-			log.Println("db error")
+			log.Error(err.Error())
 		}
 	}
-	log.Println("successfully got user!")
+	log.Info("successfully got user!")
 	return u.ID,u.Username, u.Hash, err
 }
 // GetInvoiceByID gets the invoice by the given ID
@@ -107,17 +107,17 @@ func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 	inv := entities.Invoice{}
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE id = ?", id)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 		return inv, err
 	}
 	for result.Next() {
 		err = result.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Error(err.Error())
 		}
 	}
 	if (inv != entities.Invoice{}) {
-		log.Println("successfully got invoice!")
+		log.Info("successfully got invoice!")
 	}
 	return inv, err
 }
@@ -127,36 +127,36 @@ func (ms *MySQL) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt) VALUES (?, ?, ?, ?, ?, ?);",
 		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, now)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 	}
-	log.Println("successfully inserted invoice!")
+	log.Info("successfully inserted invoice!")
 	return err
 }
 // DeleteInvoice makes the logic deletion setting isActive = 0 by the given ID
 func (ms *MySQL) DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices SET isActive = ? WHERE id = ?;", 0, id)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 	}
-	log.Println("successfully deleted invoice!")
+	log.Info("successfully deleted invoice!")
 	return err
 }
 // UpdateInvoice updates database values from the row of the given invoice
 func (ms *MySQL) UpdateInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 	}
-	log.Println("successfully updated invoice!")
+	log.Info("successfully updated invoice!")
 	return err
 }
 // PatchInvoice partially updates database values from the row of the given invoice
 func (ms *MySQL) PatchInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 	}
-	log.Println("successfully patched invoice!")
+	log.Info("successfully patched invoice!")
 	return err
 }
 // InvoiceExists checks if the given invoice document exists
@@ -164,17 +164,17 @@ func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // c
 	invoice := entities.Invoice{}
 	result, err := db.Db.Query("SELECT id FROM nf_stn.invoices WHERE document = ?", document)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 		return invoice, err
 	}
 	for result.Next() {
 		err = result.Scan(&invoice.ID)
 		if err != nil {
-			log.Println("db error")
+			log.Error(err.Error())
 		}
 	}
 	if (invoice != entities.Invoice{}) {
-		log.Println("Invoice exists!")
+		log.Info("Invoice exists!")
 	}
 	return invoice, err
 }
@@ -182,7 +182,7 @@ func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // c
 func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Error(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -190,7 +190,7 @@ func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 		for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Error(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -200,16 +200,16 @@ func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationByMonth returns page list of invoices ordered by month, 10 invoices per page
 func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceMonth = ? LIMIT 10 OFFSET ?;", referenceMonth, offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -217,7 +217,7 @@ func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -227,16 +227,16 @@ func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice by month list!")
+	log.Info("successfully got invoice by month list!")
 	return invoicesList, err
 }
 // PaginationByYear returns page list of invoices ordered by year, 10 invoices per page
 func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceYear = ? LIMIT 10 OFFSET ?;", referenceYear, offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -244,7 +244,7 @@ func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -254,16 +254,16 @@ func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice by year list!")
+	log.Info("successfully got invoice by year list!")
 	return invoicesList, err
 }
 // PaginationByDocument returns page list of invoices ordered by document, 10 invoices per page
 func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ? LIMIT 10 OFFSET ?;", document, offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -271,7 +271,7 @@ func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.I
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -281,16 +281,16 @@ func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.I
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice by year list!")
+	log.Info("successfully got invoice by year list!")
 	return invoicesList, err
 }
 // PaginationOrderByMonth returns page list of invoices ordered by month, 10 invoices per page
 func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -298,7 +298,7 @@ func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -308,16 +308,16 @@ func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByYear returns page list of invoices ordered by year, 10 invoices per page
 func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -325,7 +325,7 @@ func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -335,16 +335,16 @@ func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByDocument returns page list of invoices ordered by document, 10 invoices per page
 func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -352,7 +352,7 @@ func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -362,16 +362,16 @@ func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByMonthYear returns page list of invoices ordered by month and year, 10 invoices per page
 func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -379,7 +379,7 @@ func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -389,16 +389,16 @@ func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByMonthDocument returns page list of invoices ordered by month and document, 10 invoices per page
 func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, document LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -406,7 +406,7 @@ func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -416,16 +416,16 @@ func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 // PaginationOrderByYearDocument returns page list of invoices ordered by year and document, 10 invoices per page
 func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document, referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		log.Println("db error")
+		log.Info(err.Error())
 		return nil, err
 	}
 	inv := entities.Invoice{}
@@ -433,7 +433,7 @@ func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Info(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -443,37 +443,37 @@ func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 		_ = lines.Scan(&total)
 	}
 	if offset > total {
-		log.Println("Index out of range!")
+		log.Info("Index out of range!")
 	}
-	log.Println("successfully got invoice list!")
+	log.Info("successfully got invoice list!")
 	return invoicesList, err
 }
 //
 
 // PaginationByMonth returns page list of invoices ordered by month, 10 invoices per page
-func (ms *MySQL) PaginationTEST(query string, referenceMonth int) ([]entities.Invoice, error) {
-	results, err := db.Db.Query(query, referenceMonth)
-	if err != nil {
-		log.Println("db error")
-		return nil, err
-	}
+func (ms *MySQL) PaginationTEST(query string, args ...interface{}) ([]entities.Invoice, int, error) {
+	var err error
+	var rowsFound int
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
+	results, err := db.Db.Query(query,args...)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, rowsFound, err
+	}
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			log.Println("db error")
+			log.Error(err.Error())
 		}
 		invoicesList = append(invoicesList, inv)
 	}
 	lines, _ := db.Db.Query("SELECT FOUND_ROWS();")
-	var total int
 	for lines.Next() {
-		_ = lines.Scan(&total)
+		_ = lines.Scan(&rowsFound)
 	}
-	//if offset > total {
-	//	log.Println("Index out of range!")
-	//}
-	log.Println("successfully got invoice by month list!")
-	return invoicesList, err
+	log.Info(rowsFound, " invoices found!")
+	log.Info("successfully got invoice list!")
+	return invoicesList, rowsFound, err
 }
+//

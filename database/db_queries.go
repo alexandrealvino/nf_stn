@@ -47,13 +47,14 @@ var db config.App
 func (ms *MySQL) Init()  {
 	//db.Initialize(ms.Config.DbDriver(), ms.Config.DbUser(), ms.Config.DbPass(), ms.Config.DbName())
 	db.Initialize(ms.Config.DbDriver(), ms.Config.Conn())
-	log.Println("db connected")
+	log.Info("db connected")
 }
 // GetAll gets all the rows of the invoices db
 func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoices
 	results, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY id")
 	if err != nil {
-		panic(err.Error())
+		log.Error("null db values")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
@@ -69,15 +70,16 @@ func (ms *MySQL) GetAll() ([]entities.Invoice, error) { // get list of all invoi
 }
 // GetInvoiceByDocument gets the invoice by the document value
 func (ms *MySQL) GetInvoiceByDocument(document string) (entities.Invoice, error) { // get invoice by document
+	inv := entities.Invoice{}
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ?;", document)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return inv, err
 	}
-	inv := entities.Invoice{}
 	for result.Next() {
 		err = result.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 	}
 	log.Println("successfully got invoice!")
@@ -85,15 +87,16 @@ func (ms *MySQL) GetInvoiceByDocument(document string) (entities.Invoice, error)
 }
 // GetUser gets the user credentials, if exists, by the given profile in the request
 func (ms *MySQL) GetUser(username string) (int,string, string, error) { // get acc data by profile
+	var u entities.User
 	result, err := db.Db.Query("SELECT id,username, hash FROM nf_stn.users WHERE username = ?;", username)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return u.ID,u.Username,u.Hash, err
 	}
-	var u entities.User
 	for result.Next() {
 		err = result.Scan(&u.ID,&u.Username, &u.Hash)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 	}
 	log.Println("successfully got user!")
@@ -101,15 +104,16 @@ func (ms *MySQL) GetUser(username string) (int,string, string, error) { // get a
 }
 // GetInvoiceByID gets the invoice by the given ID
 func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticker by id
+	inv := entities.Invoice{}
 	result, err := db.Db.Query("SELECT id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE id = ?", id)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return inv, err
 	}
-	inv := entities.Invoice{}
 	for result.Next() {
 		err = result.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 	}
 	if (inv != entities.Invoice{}) {
@@ -119,15 +123,11 @@ func (ms *MySQL) GetInvoiceByID(id int) (entities.Invoice, error) { // get ticke
 }
 // InsertInvoice inserts the given invoice to invoices db
 func (ms *MySQL) InsertInvoice(invoice entities.Invoice) error { // insert invoice
-	//monthDay, month, hour, min, sec, year := time.Now().Day(), time.Now().Month(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), time.Now().Year()
-	//date := strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(monthDay)
-	//clock := strconv.Itoa(hour) + ":" + strconv.Itoa(min) + ":" + strconv.Itoa(sec)
-	//now := date + " " + clock
 	now:= lib.Now()
 	_, err := db.Db.Query("INSERT INTO nf_stn.invoices (referenceMonth, referenceYear, document , description, amount, createdAt) VALUES (?, ?, ?, ?, ?, ?);",
 		invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, now)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
 	}
 	log.Println("successfully inserted invoice!")
 	return err
@@ -136,7 +136,7 @@ func (ms *MySQL) InsertInvoice(invoice entities.Invoice) error { // insert invoi
 func (ms *MySQL) DeleteInvoice(id int) error { // set isActive = 0 for logic deletion
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices SET isActive = ? WHERE id = ?;", 0, id)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
 	}
 	log.Println("successfully deleted invoice!")
 	return err
@@ -145,7 +145,7 @@ func (ms *MySQL) DeleteInvoice(id int) error { // set isActive = 0 for logic del
 func (ms *MySQL) UpdateInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, document=?, description=?, amount=?, isActive=?, createdAt=?, deactivatedAt=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Document, invoice.Description, invoice.Amount, invoice.IsActive, invoice.CreatedAt, invoice.DeactivatedAt, invoice.ID)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
 	}
 	log.Println("successfully updated invoice!")
 	return err
@@ -154,22 +154,23 @@ func (ms *MySQL) UpdateInvoice(invoice entities.Invoice) error { // update invoi
 func (ms *MySQL) PatchInvoice(invoice entities.Invoice) error { // update invoice
 	_, err := db.Db.Exec("UPDATE nf_stn.invoices  SET referenceMonth=?, referenceYear=?, description=?, amount=? WHERE id = ?;", invoice.ReferenceMonth, invoice.ReferenceYear, invoice.Description, invoice.Amount, invoice.ID)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
 	}
 	log.Println("successfully patched invoice!")
 	return err
 }
 // InvoiceExists checks if the given invoice document exists
 func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // checks if invoice is already exists
+	invoice := entities.Invoice{}
 	result, err := db.Db.Query("SELECT id FROM nf_stn.invoices WHERE document = ?", document)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return invoice, err
 	}
-	invoice := entities.Invoice{}
 	for result.Next() {
 		err = result.Scan(&invoice.ID)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 	}
 	if (invoice != entities.Invoice{}) {
@@ -181,14 +182,15 @@ func (ms *MySQL) InvoiceExists(document string) (entities.Invoice, error) { // c
 func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 		for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -207,14 +209,15 @@ func (ms *MySQL) Pagination(offset int) ([]entities.Invoice, error) {
 func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceMonth = ? LIMIT 10 OFFSET ?;", referenceMonth, offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -233,14 +236,15 @@ func (ms *MySQL) PaginationByMonth(offset, referenceMonth int) ([]entities.Invoi
 func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE referenceYear = ? LIMIT 10 OFFSET ?;", referenceYear, offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -259,14 +263,15 @@ func (ms *MySQL) PaginationByYear(offset, referenceYear int) ([]entities.Invoice
 func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices WHERE document = ? LIMIT 10 OFFSET ?;", document, offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -285,14 +290,15 @@ func (ms *MySQL) PaginationByDocument(offset int, document string) ([]entities.I
 func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -311,14 +317,15 @@ func (ms *MySQL) PaginationOrderByMonth(offset int) ([]entities.Invoice, error) 
 func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -337,14 +344,15 @@ func (ms *MySQL) PaginationOrderByYear(offset int) ([]entities.Invoice, error) {
 func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -363,14 +371,15 @@ func (ms *MySQL) PaginationOrderByDocument(offset int) ([]entities.Invoice, erro
 func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -389,14 +398,15 @@ func (ms *MySQL) PaginationOrderByMonthYear(offset int) ([]entities.Invoice, err
 func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY referenceMonth, document LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -415,14 +425,15 @@ func (ms *MySQL) PaginationOrderByMonthDocument(offset int) ([]entities.Invoice,
 func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query("SELECT SQL_CALC_FOUND_ROWS id, referenceMonth, referenceYear, document , description, amount, isActive, createdAt, deactivatedAt FROM nf_stn.invoices ORDER BY document, referenceYear LIMIT 10 OFFSET ?;", offset)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}
@@ -443,14 +454,15 @@ func (ms *MySQL) PaginationOrderByYearDocument(offset int) ([]entities.Invoice, 
 func (ms *MySQL) PaginationTEST(query string, referenceMonth int) ([]entities.Invoice, error) {
 	results, err := db.Db.Query(query, referenceMonth)
 	if err != nil {
-		panic(err.Error())
+		log.Println("db error")
+		return nil, err
 	}
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	for results.Next() {
 		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
 		if err != nil {
-			panic(err.Error())
+			log.Println("db error")
 		}
 		invoicesList = append(invoicesList, inv)
 	}

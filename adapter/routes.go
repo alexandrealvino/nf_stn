@@ -28,7 +28,7 @@ func (rr *Routes) GetAll(w http.ResponseWriter, r *http.Request) { // get invoic
 	var results []entities.Invoice
 	results, err := rr.Db.GetAll()
 	if err != nil {
-		panic(err.Error())
+		log.Error("invoices list not found!")
 	} else {
 	}
 	w.WriteHeader(http.StatusOK)
@@ -42,14 +42,14 @@ func (rr *Routes) GetInvoiceByDocument(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		log.Error("request body incorrect format")
 	}
 	var invoice entities.Invoice // Unmarshal
 	err = json.Unmarshal(b, &invoice)
 	var result entities.Invoice
 	result, err = rr.Db.GetInvoiceByDocument(invoice.Document)
 	if err != nil {
-		panic(err.Error())
+		log.Error("invoice not found")
 	} else {
 	}
 	w.WriteHeader(http.StatusOK)
@@ -63,12 +63,12 @@ func (rr *Routes) InsertInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		log.Error("request body incorrect format")
 	}
 	var invoice entities.Invoice // Unmarshal
 	err = json.Unmarshal(b, &invoice)
 	if err != nil {
-		panic(err.Error())
+		log.Error("request body incorrect format")
 	}
 	err = rr.Db.InsertInvoice(invoice)
 	w.WriteHeader(http.StatusCreated)
@@ -84,15 +84,16 @@ func (rr *Routes) DeleteInvoice(w http.ResponseWriter, r *http.Request) {
 
 	idDb, err := rr.Db.GetInvoiceByID(ID)
 	if err != nil {
+		log.Error("id not found!")
 		return
 	}
 	if (idDb == entities.Invoice{}) {
-		println("id not found!")
+		log.Error("id not found!")
 		w.WriteHeader(http.StatusNotFound)
 	} else {
 		err := rr.Db.DeleteInvoice(ID)
 		if err != nil {
-			panic(err.Error())
+			log.Error("delete unsuccessful")
 		}
 		w.WriteHeader(http.StatusOK)
 	}
@@ -109,12 +110,12 @@ func (rr *Routes) UpdateInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		log.Error("request body incorrect format")
 	}
 	var invoice entities.Invoice
 	err = json.Unmarshal(b, &invoice) // Unmarshal
 	if err != nil {
-		panic(err.Error())
+		log.Error("request body incorrect format")
 	}
 	invoiceExists, _ := rr.Db.InvoiceExists(invoice.Document)
 	if (invoiceExists == entities.Invoice{}) {
@@ -124,7 +125,7 @@ func (rr *Routes) UpdateInvoice(w http.ResponseWriter, r *http.Request) {
 		invoice.ID = invoiceExists.ID
 		err := rr.Db.UpdateInvoice(invoice)
 		if err != nil {
-			panic(err.Error())
+			log.Error("update unsuccessful")
 		}
 	}
 	w.WriteHeader(http.StatusOK)
@@ -138,17 +139,17 @@ func (rr *Routes) PatchInvoice(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("Content-Type", "application/json")
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err.Error())
+		log.Error("request body incorrect format")
 	}
 	var invoice, editedInvoice entities.Invoice
 	_ = json.Unmarshal(b, &invoice) // Unmarshal
 	err = rr.Db.PatchInvoice(invoice)
 	if err != nil {
-		panic(err.Error())
+		log.Error("patch unsuccessful")
 	}
 	editedInvoice, err = rr.Db.GetInvoiceByID(invoice.ID)
 	if err != nil {
-		panic(err.Error())
+		log.Error("patch unsuccessful")
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
@@ -161,7 +162,7 @@ func (rr *Routes) Pagination(w http.ResponseWriter, r *http.Request) { // get in
 	page , _ := strconv.Atoi(r.FormValue("page"))
 	results, err := rr.Db.Pagination((page-1)*10)
 	if err != nil {
-		panic(err.Error())
+		log.Error("pagination unsuccessful")
 	} else {
 	}
 	w.WriteHeader(http.StatusOK)

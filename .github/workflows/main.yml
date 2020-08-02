@@ -22,4 +22,4 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag alexandrealvino/nf_stn:latest
       - name: Docker push
-        run:  docker push robkler/swapi-api:latest
+        run:  docker push alexandrealvino/nf_stn:latest

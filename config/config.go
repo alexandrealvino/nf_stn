@@ -2,6 +2,7 @@ package config
 
 import (
 	"database/sql"
+	"github.com/go-redis/redis/v7"
 	_ "github.com/go-sql-driver/mysql" // importing driver mysql
 	"log"
 )
@@ -9,32 +10,26 @@ import (
 // App class object for db instantiation
 type App struct {
 	Db *sql.DB
+	Clt *redis.Client
 }
-
-// Initialize initiates the db connection
-func (a *App) Initialize(dbdriver, dbuser, dbpass, dbname string) {
+// Initialize initiates the db connection and redis
+func (a *App) Initialize(dbDriver,conn string) {
 	var err error
-	a.Db, err = sql.Open(dbdriver, dbuser+":"+dbpass+"@tcp(127.0.0.1:3306)/"+dbname)
-	//a.Db, err = sql.Open("mysql", "root"+":"+"admin"+"@tcp(127.0.0.1:3306)/"+"nf_stn")
-	//a.Db, err = sql.Open(dbdriver, CLEAR_DATABASE_URL)
+	// Initializing db connection
+	a.Db, err = sql.Open(dbDriver,conn)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
-
-//func  DbConn() (db *sql.DB) {
-//	//dbdriver := dbDriver
-//	//dbuser := dbUser
-//	//dbpass := dbPass
-//	//dbname := dbName
-//	dbdriver := "mysql"
-//	dbuser := "root"
-//	dbpass := "admin"
-//	dbname := "nf_stn"
-//	////dbpass := "!Q2w#E4r"
-//	db, err := sql.Open(dbdriver, dbuser+":"+dbpass+"@tcp(127.0.0.1:3306)/"+dbname)
-//	if err != nil {
-//		panic(err.Error())
-//	}
-//	return db
-//}
+// ConnectRedis start a connection with redis
+func (a *App) ConnectRedis(dsn string) {
+	// Initializing redis
+	a.Clt = redis.NewClient(&redis.Options{
+		Addr: dsn, //redis port
+	})
+	_, err := a.Clt.Ping().Result()
+	if err != nil {
+		panic(err)
+	}
+}
+//

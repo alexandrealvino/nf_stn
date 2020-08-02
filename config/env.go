@@ -1,55 +1,52 @@
 package config
 
-import (
-	"os"
-)
+import "os"
 
-//var DbDriver = os.Getenv("MYSQL_DRIVER")
-//var DbName = os.Getenv("MYSQL_DATABASE")
-//var DbUser = os.Getenv("MYSQL_USER")
-//var DbPass = os.Getenv("MYSQL_PASSWORD")
-//var DbRootPwd = os.Getenv("MYSQL_ROOT_PASSWORD")
-////
-
+// DataBaseConfig interface
 type DataBaseConfig interface {
-	Dbdriver() string
-	Dbuser() string
-	Dbpass() string
-	Dbname() string
+	DbDriver() string
+	DbUser()   string
+	DbPass()   string
+	DbName()   string
+	URL()      string
+	Conn()     string
 }
-
-type Config struct {
-}
-
-	func(c *Config) Dbdriver() string {
+// Config struct
+type Config struct {}
+// DbDriver returns the db driver env variable
+func (c *Config) DbDriver() string {
 	return os.Getenv("MYSQL_DRIVER")
 }
-
-	func (c *Config) Dbuser() string {
+// DbUser returns the db user env variable
+func (c *Config) DbUser() string {
 	return os.Getenv("MYSQL_USER")
 }
-
-	func (c *Config) Dbpass() string {
+// DbPass returns the db password env variable
+func (c *Config) DbPass() string {
 	return os.Getenv("MYSQL_PASSWORD")
 }
-	func (c *Config) Dbname() string {
+// DbName returns the db name env variable
+func (c *Config) DbName() string {
 	return os.Getenv("MYSQL_DATABASE")
 }
+// URL returns the URL env variable
+func (c *Config) URL() string {
+	return os.Getenv("URL")
+}
+// Conn returns the connection string
+func (c *Config) Conn() string {
+	conn := c.DbUser()+":"+c.DbPass()+"@tcp("+c.URL()+")/"+c.DbName()
+	return conn
+}
 
-////Dbdriver is the driver name
-//var Dbdriver = "mysql"
-//
-////Dbuser is the username for the db connection
-//var Dbuser = "root"
-//
-////Dbpass is the password for the db connection
-//var Dbpass = "admin"
-//
-////Dbname is the db name
-//var Dbname = "nf_stn"
+// RedisConfig interface
+type RedisConfig interface {
+	DSN() string
+}
+// RedisCfg struct
+type RedisCfg struct {}
 
-//var port = os.Getenv("PORT")
-//var dns = os.Getenv("DATABASE_URL")
-//
-////CLEAR_DATABASE_URL = mysql://b4d9a89ec98c72:8222a64a@us-cdbr-east-02.cleardb.com/heroku_256cb7af530bbcb?reconnect=true
-//var CLEAR_DATABASE_URL = "b4d9a89ec98c72"+":"+"8222a64a"+"@tcp(us-cdbr-east-02.cleardb.com)/"+"heroku_256cb7af530bbcb"
+// DSN returns the db name env variable
+func (r *RedisCfg) DSN() string {
+	return os.Getenv("REDIS_DSN")
+}

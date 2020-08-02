@@ -15,6 +15,7 @@ func Now() string {
 	now := date + " " + clock
 	return now
 }
+
 // HashAndSalt uses GenerateFromPassword to hash & salt pwd.
 func HashAndSalt(pwd string) string {
 	pwdByte := []byte(pwd)
@@ -24,6 +25,7 @@ func HashAndSalt(pwd string) string {
 	}
 	return string(hash)
 }
+
 // ComparePasswords compares the hash stored in the database
 // with the hash generated from the given password
 func ComparePasswords(hashedPwd string, plainPwd string) bool {

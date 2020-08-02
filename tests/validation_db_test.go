@@ -12,14 +12,7 @@ import (
 	"testing"
 )
 
-//// NewMockDbClient mocks
-//func NewMockDbClient(ctrl *gomock.Controller) *MockDataBase {
-//	mock := &MockDataBase{ctrl: ctrl}
-//	mock.recorder = &MockDataBaseMockRecorder{mock}
-//	return mock
-//}
-
-// TestInsertInvoice tests the /api/insertInvoice endpoint
+// TestInsertInvoice tests the /api POST endpoint
 func TestInsertInvoice(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
@@ -41,7 +34,7 @@ func TestInsertInvoice(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusCreated)
 	}
-	expected := `{"id":1,"referenceMonth":1,"referenceYear":2020,"document":"00000000000011","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"}`
+	expected := `{"authenticationStatus":"authorized","requestMethod":"POST","contentType":"application/json","page":"1","totalPages":"1","numberOfInvoices":1,"invoices":[{"id":1,"referenceMonth":1,"referenceYear":2020,"document":"00000000000011","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"}]}`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
 	if err != nil {
@@ -53,8 +46,8 @@ func TestInsertInvoice(t *testing.T) {
 			rr.Body.String(), expected)
 	}
 }
-// TestGetAll tests the /api/getAll endpoint
-func TestGetAll(t *testing.T) {
+// TestGetInvoices tests the /api GET endpoint
+func TestGetInvoices(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
 	routes := adapter.Routes{
@@ -74,20 +67,21 @@ func TestGetAll(t *testing.T) {
 			DeactivatedAt: "2020-01-01 00:01:00",
 		},
 	}
-	cm.EXPECT().GetAll().Return(ex, nil)
+	i := 1
+	cm.EXPECT().GetInvoices(gomock.Any()).Return(ex, i, nil)
 	req, err := http.NewRequest("GET", "/api/getall", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.GetAll)
+	handler := http.HandlerFunc(routes.GetInvoices)
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
+	expected := `{"authenticationStatus":"authorized","requestMethod":"GET","contentType":"application/json","page":"1","totalPages":"1","numberOfInvoices":1,"invoices":[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]}`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
 	if err != nil {
@@ -99,7 +93,7 @@ func TestGetAll(t *testing.T) {
 			rr.Body.String(), expected)
 	}
 }
-// TestEditInvoice tests the /api/up/ endpoint
+// TestEditInvoice tests the /api PUT endpoint
 func TestEditInvoice(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
@@ -132,7 +126,7 @@ func TestEditInvoice(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-	expected := `{"id":1,"referenceMonth":1,"referenceYear":2020,"document":"00000000000011","description":"update","amount":10,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"}`
+	expected := `{"authenticationStatus":"authorized","requestMethod":"PUT","contentType":"application/json","page":"1","totalPages":"1","numberOfInvoices":1,"invoices":[{"id":1,"referenceMonth":1,"referenceYear":2020,"document":"00000000000011","description":"update","amount":0.1,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-07-20 10:07:37"}]}`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
 	if err != nil {
@@ -144,7 +138,7 @@ func TestEditInvoice(t *testing.T) {
 			rr.Body.String(), expected)
 	}
 }
-// TestPatchInvoice tests the /api/patch/ endpoint
+// TestPatchInvoice tests the /api PATCH endpoint
 func TestPatchInvoice(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
@@ -163,6 +157,7 @@ func TestPatchInvoice(t *testing.T) {
 		CreatedAt: "2020-07-20 10:07:37",
 		DeactivatedAt: "2020-01-01 00:01:00",
 	}
+	cm.EXPECT().InvoiceExists(gomock.Any()).Return(ex,nil)
 	cm.EXPECT().GetInvoiceByID(gomock.Any()).Return(ex,nil)
 	cm.EXPECT().PatchInvoice(gomock.Any()).Return(nil)
 	req, err := http.NewRequest("PUT", "/api/patch/", bytes.NewBuffer(jsonStr))
@@ -177,7 +172,7 @@ func TestPatchInvoice(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-	expected := `{"id":1,"referenceMonth":2,"referenceYear":2022,"document":"00000000000011","description":"patched","amount":12,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-01-01 00:01:00"}`
+	expected := `{"authenticationStatus":"authorized","requestMethod":"PUT","contentType":"application/json","page":"1","totalPages":"1","numberOfInvoices":1,"invoices":[{"id":1,"referenceMonth":2,"referenceYear":2022,"document":"00000000000011","description":"patched","amount":12,"isActive":1,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-01-01 00:01:00"}]}`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
 	if err != nil {
@@ -189,7 +184,7 @@ func TestPatchInvoice(t *testing.T) {
 			rr.Body.String(), expected)
 	}
 }
-// TestDeleteInvoice tests the /api/del/ endpoint
+// TestDeleteInvoice tests the /api DELETE endpoint
 func TestDeleteInvoice(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
@@ -222,7 +217,7 @@ func TestDeleteInvoice(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-	expected := `{"deletedID":1}`
+	expected := `{"authenticationStatus":"authorized","requestMethod":"DELETE","contentType":"application/json","page":"1","totalPages":"1","numberOfInvoices":1,"invoices":[{"id":1,"referenceMonth":2,"referenceYear":2022,"document":"00000000000011","description":"patched","amount":12,"isActive":0,"createdAt":"2020-07-20 10:07:37","deactivatedAt":"2020-01-01 00:01:00"}]}`
 	buffer := new(bytes.Buffer)
 	err = json.Compact(buffer, rr.Body.Bytes())
 	if err != nil {
@@ -234,15 +229,20 @@ func TestDeleteInvoice(t *testing.T) {
 			rr.Body.String(), expected)
 	}
 }
-// TestPagination tests the /api/pagination endpoint
-func TestPagination(t *testing.T) {
+// TestInit tests the Init function
+func TestInit(t *testing.T) {
+	c := gomock.NewController(t)
+	cm := databaseMock.NewMockDbClient(c)
+	cm.EXPECT().Init().Return()
+}
+// TestGetInvoiceByDocument tests the GetInvoiceByDocument function
+func TestGetInvoiceByDocument(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
 	routes := adapter.Routes{
 		Db: cm,
 	}
-	ex := []entities.Invoice{
-		{
+	ex := entities.Invoice{
 			ID: 1,
 			ReferenceMonth: 7,
 			ReferenceYear: 2022,
@@ -252,436 +252,120 @@ func TestPagination(t *testing.T) {
 			IsActive: 1,
 			CreatedAt: "2020-07-29 17:18:04",
 			DeactivatedAt: "2020-01-01 00:01:00",
-		},
+		}
+	cm.EXPECT().GetInvoiceByDocument(gomock.Any()).Return(ex,nil)
+	rr, _ := routes.Db.GetInvoiceByDocument("00000000000014")
+	expected := entities.Invoice{
+		ID: 1,
+		ReferenceMonth: 7,
+		ReferenceYear: 2022,
+		Document: "00000000000014",
+		Description: "insert",
+		Amount: 10,
+		IsActive: 1,
+		CreatedAt: "2020-07-29 17:18:04",
+		DeactivatedAt: "2020-01-01 00:01:00",
 	}
-	cm.EXPECT().Pagination(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.Pagination)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
+	if rr != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
+			rr, expected)
 	}
 }
-// TestPaginationOrderByMonth tests the /api/pagination/{offset}/month endpoint
-func TestPaginationOrderByMonth(t *testing.T) {
+// TestGetInvoiceByID tests the GetInvoiceByID function
+func TestGetInvoiceByID(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
 	routes := adapter.Routes{
 		Db: cm,
 	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
+	ex := entities.Invoice{
+		ID: 1,
+		ReferenceMonth: 7,
+		ReferenceYear: 2022,
+		Document: "00000000000014",
+		Description: "insert",
+		Amount: 10,
+		IsActive: 1,
+		CreatedAt: "2020-07-29 17:18:04",
+		DeactivatedAt: "2020-01-01 00:01:00",
 	}
-	cm.EXPECT().PaginationOrderByMonth(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/month", nil)
-	if err != nil {
-		t.Fatal(err)
+	cm.EXPECT().GetInvoiceByID(gomock.Any()).Return(ex,nil)
+	rr, _ := routes.Db.GetInvoiceByID(1)
+	expected := entities.Invoice{
+		ID: 1,
+		ReferenceMonth: 7,
+		ReferenceYear: 2022,
+		Document: "00000000000014",
+		Description: "insert",
+		Amount: 10,
+		IsActive: 1,
+		CreatedAt: "2020-07-29 17:18:04",
+		DeactivatedAt: "2020-01-01 00:01:00",
 	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationOrderByMonth)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
+	if rr != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
+			rr, expected)
 	}
 }
-// TestPaginationOrderByYear tests the /api/pagination/{offset}/year endpoint
-func TestPaginationOrderByYear(t *testing.T) {
+// TestGetUser tests the GetUser function
+func TestGetUser(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
 	routes := adapter.Routes{
 		Db: cm,
 	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
+	ex := entities.User{
+		ID: 1,
+		Username: "username",
+		Hash: "$2a$04$/GvrVH49FLVOVqbtXd99oul2Ma8Nw84dHbYqapq93R042Q98OpEAW",
 	}
-	cm.EXPECT().PaginationOrderByYear(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/year", nil)
-	if err != nil {
-		t.Fatal(err)
+	cm.EXPECT().GetUser(gomock.Any()).Return(ex.ID,ex.Username,ex.Hash,nil)
+	var u entities.User
+	u.ID, u.Username, u.Hash, _ = routes.Db.GetUser(ex.Username)
+	expected := entities.User{
+		ID: 1,
+		Username: "username",
+		Hash: "$2a$04$/GvrVH49FLVOVqbtXd99oul2Ma8Nw84dHbYqapq93R042Q98OpEAW",
 	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationOrderByYear)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
+	if u != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
+			u, expected)
 	}
 }
-// TestPaginationOrderByDocument tests the /api/pagination/{offset}/document/ endpoint
-func TestPaginationOrderByDocument(t *testing.T) {
+// TestInvoiceExists tests the InvoiceExists function
+func TestInvoiceExists(t *testing.T) {
 	c := gomock.NewController(t)
 	cm := databaseMock.NewMockDbClient(c)
 	routes := adapter.Routes{
 		Db: cm,
 	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
+	ex := entities.Invoice{
+		ID: 1,
+		ReferenceMonth: 7,
+		ReferenceYear: 2022,
+		Document: "00000000000014",
+		Description: "insert",
+		Amount: 10,
+		IsActive: 1,
+		CreatedAt: "2020-07-29 17:18:04",
+		DeactivatedAt: "2020-01-01 00:01:00",
 	}
-	cm.EXPECT().PaginationOrderByDocument(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/document", nil)
-	if err != nil {
-		t.Fatal(err)
+	cm.EXPECT().InvoiceExists(gomock.Any()).Return(ex,nil)
+	rr, _ := routes.Db.InvoiceExists("00000000000014")
+	expected := entities.Invoice{
+		ID: 1,
+		ReferenceMonth: 7,
+		ReferenceYear: 2022,
+		Document: "00000000000014",
+		Description: "insert",
+		Amount: 10,
+		IsActive: 1,
+		CreatedAt: "2020-07-29 17:18:04",
+		DeactivatedAt: "2020-01-01 00:01:00",
 	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationOrderByDocument)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
+	if rr != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-// TestPaginationOrderByMonthYear tests the /api/pagination/{offset}/month/year/ endpoint
-func TestPaginationOrderByMonthYear(t *testing.T) {
-	c := gomock.NewController(t)
-	cm := databaseMock.NewMockDbClient(c)
-	routes := adapter.Routes{
-		Db: cm,
-	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
-	}
-	cm.EXPECT().PaginationOrderByMonthYear(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/month/year/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationOrderByMonthYear)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-// TestPaginationOrderByMonthDocument tests the /api/pagination/{offset}/month/document/ endpoint
-func TestPaginationOrderByMonthDocument(t *testing.T) {
-	c := gomock.NewController(t)
-	cm := databaseMock.NewMockDbClient(c)
-	routes := adapter.Routes{
-		Db: cm,
-	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
-	}
-	cm.EXPECT().PaginationOrderByMonthDocument(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/month/document/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationOrderByMonthDocument)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-// TestPaginationOrderByYearDocument tests the /api/pagination/{offset}/year/document/ endpoint
-func TestPaginationOrderByYearDocument(t *testing.T) {
-	c := gomock.NewController(t)
-	cm := databaseMock.NewMockDbClient(c)
-	routes := adapter.Routes{
-		Db: cm,
-	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
-	}
-	cm.EXPECT().PaginationOrderByYearDocument(gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/year/document/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationOrderByYearDocument)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-// TestPaginationByMonth tests the /api/pagination/{offset}/month/{referenceMonth} endpoint
-func TestPaginationByMonth(t *testing.T) {
-	c := gomock.NewController(t)
-	cm := databaseMock.NewMockDbClient(c)
-	routes := adapter.Routes{
-		Db: cm,
-	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
-	}
-	cm.EXPECT().PaginationByMonth(gomock.Any(),gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/month/{referenceMonth}", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationByMonth)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-// TestPaginationByYear tests the /api/pagination/{offset}/year/{referenceYear} endpoint
-func TestPaginationByYear(t *testing.T) {
-	c := gomock.NewController(t)
-	cm := databaseMock.NewMockDbClient(c)
-	routes := adapter.Routes{
-		Db: cm,
-	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
-	}
-	cm.EXPECT().PaginationByYear(gomock.Any(),gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/year/{referenceYear}", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationByYear)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-// TestPaginationByDocument tests the /api/pagination/{offset}/document/{document} endpoint
-func TestPaginationByDocument(t *testing.T) {
-	c := gomock.NewController(t)
-	cm := databaseMock.NewMockDbClient(c)
-	routes := adapter.Routes{
-		Db: cm,
-	}
-	ex := []entities.Invoice{
-		{
-			ID: 1,
-			ReferenceMonth: 7,
-			ReferenceYear: 2022,
-			Document: "00000000000014",
-			Description: "insert",
-			Amount: 10,
-			IsActive: 1,
-			CreatedAt: "2020-07-29 17:18:04",
-			DeactivatedAt: "2020-01-01 00:01:00",
-		},
-	}
-	cm.EXPECT().PaginationByDocument(gomock.Any(),gomock.Any()).Return(ex, nil)
-	req, err := http.NewRequest("GET", "/api/pagination/{offset}/document/{document}", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(routes.PaginationByDocument)
-	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-	// Check the response body is what we expect.
-	expected := `[{"id":1,"referenceMonth":7,"referenceYear":2022,"document":"00000000000014","description":"insert","amount":10,"isActive":1,"createdAt":"2020-07-29 17:18:04","deactivatedAt":"2020-01-01 00:01:00"}]`
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, rr.Body.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = json.Unmarshal(rr.Body.Bytes(), &buffer)
-	if buffer.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
+			rr, expected)
 	}
 }
 //

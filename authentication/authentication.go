@@ -15,6 +15,8 @@ import (
 	"nf_stn/entities"
 )
 
+//go:generate  go run github.com/golang/mock/mockgen  -package mock -destination=./mock/token_mock.go -source=$GOFILE
+
 // Token interface
 type Token interface {
 	Init()
@@ -26,7 +28,7 @@ type Token interface {
 	FetchAuth(authD *entities.AccessDetails) (uint64, error)
 	CreateToken(userid uint64, username string) (*entities.TokenDetails, error)
 	CreateAuth(userID uint64, td *entities.TokenDetails) error
-	DeleteAuth(givenUUID string) (int64,error)
+	DeleteAuth(givenUUID string) (int64, error)
 }
 
 // Auth struct
@@ -53,6 +55,7 @@ func (au *Auth) ExtractToken(r *http.Request) string {
 	}
 	return ""
 }
+
 // VerifyToken verifies the token
 func (au *Auth) VerifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := au.ExtractToken(r)
@@ -68,6 +71,7 @@ func (au *Auth) VerifyToken(r *http.Request) (*jwt.Token, error) {
 	}
 	return token, nil
 }
+
 // TokenValid checks the validity of the token, returns error if it has already expired
 func (au *Auth) TokenValid(r *http.Request) error {
 	token, err := au.VerifyToken(r)
@@ -79,6 +83,7 @@ func (au *Auth) TokenValid(r *http.Request) error {
 	}
 	return nil
 }
+
 // ExtractTokenMetadata the token metadata so we can lookup in our redis
 func (au *Auth) ExtractTokenMetadata(r *http.Request) (*entities.AccessDetails, error) {
 	token, err := au.VerifyToken(r)
@@ -97,11 +102,12 @@ func (au *Auth) ExtractTokenMetadata(r *http.Request) (*entities.AccessDetails, 
 		}
 		return &entities.AccessDetails{
 			AccessUUID: accessUUID,
-			UserID:   userID,
+			UserID:     userID,
 		}, nil
 	}
 	return nil, err
 }
+
 // Logout requests a logout
 func (au *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 	tokenAuth, err := au.ExtractTokenMetadata(r)
@@ -128,6 +134,7 @@ func (au *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 	encoder.SetIndent("", "\t")
 	_ = encoder.Encode("Successfully logged out")
 }
+
 // FetchAuth fetches access details from the token in redis
 func (au *Auth) FetchAuth(authD *entities.AccessDetails) (uint64, error) {
 	ID, err := redis.Clt.Get(authD.AccessUUID).Result()
@@ -138,6 +145,7 @@ func (au *Auth) FetchAuth(authD *entities.AccessDetails) (uint64, error) {
 	userID, _ := strconv.ParseUint(ID, 10, 64)
 	return userID, nil
 }
+
 // CreateToken creates token
 func (au *Auth) CreateToken(userid uint64, username string) (*entities.TokenDetails, error) {
 	var err error
@@ -173,6 +181,7 @@ func (au *Auth) CreateToken(userid uint64, username string) (*entities.TokenDeta
 	}
 	return td, nil
 }
+
 // CreateAuth creates authentication access
 func (au *Auth) CreateAuth(userID uint64, td *entities.TokenDetails) error {
 	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
@@ -188,12 +197,14 @@ func (au *Auth) CreateAuth(userID uint64, td *entities.TokenDetails) error {
 	}
 	return nil
 }
+
 // DeleteAuth deletes authentication access
-func (au *Auth) DeleteAuth(givenUUID string) (int64,error) {
+func (au *Auth) DeleteAuth(givenUUID string) (int64, error) {
 	deleted, err := redis.Clt.Del(givenUUID).Result()
 	if err != nil {
 		return 0, err
 	}
 	return deleted, nil
 }
+
 //

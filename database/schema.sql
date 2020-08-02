@@ -8,7 +8,7 @@ create table IF NOT EXISTS invoices
         primary key,
     document       varchar(14) unique                     not null,
     description    varchar(256)                           not null,
-    amount         bigint                           not null,
+    amount         bigint                                 not null,
     referenceMonth int                                    not null,
     referenceYear  int                                    not null,
     isActive       bool  default 1                     not null,
@@ -20,17 +20,18 @@ create table IF NOT EXISTS users
 (
     id        int auto_increment
         primary key,
-    username  varchar(20)  not null,
+    username  varchar(20) unique not null,
     hash  char(60)      not null
 );
 
-# botar indix aonde eu busco e index composto, username unico
-
-CREATE INDEX IDX_INVOICES_DOCUMENT_ISACTIVE ON invoices (document);
-CREATE INDEX IDX_INVOICES_MONTH_ISACTIVE ON invoices (referenceMonth);
-CREATE INDEX IDX_INVOICES_YEAR_ISACTIVE ON invoices (referenceYear);
+CREATE INDEX IDX_INVOICES_DOCUMENT ON invoices (document);
+CREATE INDEX IDX_INVOICES_MONTH ON invoices (referenceMonth);
+CREATE INDEX IDX_INVOICES_YEAR ON invoices (referenceYear);
+CREATE INDEX IDX_INVOICES_DOCUMENT_ISACTIVE ON invoices (isActive,document);
+CREATE INDEX IDX_INVOICES_MONTH_ISACTIVE ON invoices (isActive,referenceMonth);
+CREATE INDEX IDX_INVOICES_YEAR_ISACTIVE ON invoices (isActive,referenceYear);
 CREATE INDEX IDX_INVOICES_DOCUMENT_MONTH ON invoices (document,referenceMonth);
 CREATE INDEX IDX_INVOICES_DOCUMENT_YEAR ON invoices (document,referenceYear);
 CREATE INDEX IDX_INVOICES_MONTH_YEAR ON invoices (referenceMonth,referenceYear);
 
-INSERT INTO nf_stn.users (username, hash) VALUES ("username", "$2a$04$/GvrVH49FLVOVqbtXd99oul2Ma8Nw84dHbYqapq93R042Q98OpEAW");
+INSERT INTO nf_stn.users (username, hash) VALUES ('username', '$2a$04$/GvrVH49FLVOVqbtXd99oul2Ma8Nw84dHbYqapq93R042Q98OpEAW');

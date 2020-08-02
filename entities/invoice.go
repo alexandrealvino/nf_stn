@@ -12,4 +12,5 @@ type Invoice struct {
 	CreatedAt      string  `json:"createdAt"`
 	DeactivatedAt  string  `json:"deactivatedAt"`
 }
+
 //

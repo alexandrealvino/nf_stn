@@ -18,13 +18,13 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			log.Error("validation error: token invalid")
 		}
 		tokenAuth, err := au.ExtractTokenMetadata(r)
-		if err != nil{
+		if err != nil {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			info := map[string]string{
-				"authentication status":  "unauthorized",
-				"method": r.Method,
-				"content-type": "application/json",
+				"authentication status": "unauthorized",
+				"method":                r.Method,
+				"content-type":          "application/json",
 			}
 			encoder := json.NewEncoder(w)
 			encoder.SetIndent("", "\t")
@@ -37,28 +37,18 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			info := map[string]string{
-				"authentication status":  "unauthorized",
-				"method": r.Method,
-				"content-type": "application/json",
+				"authentication status": "unauthorized",
+				"method":                r.Method,
+				"content-type":          "application/json",
 			}
 			encoder := json.NewEncoder(w)
 			encoder.SetIndent("", "\t")
 			_ = encoder.Encode(info)
 			return
 		}
-
 		w.Header().Add("Content-Type", "application/json")
-		//w.WriteHeader(http.StatusOK)
-		//info := map[string]interface{}{
-		//	"authentication status": "authorized",
-		//	"method":                r.Method,
-		//	"content-type":          "application/json",
-		//}
-		//
-		//encoder := json.NewEncoder(w)
-		//encoder.SetIndent("", "\t")
-		//_ = encoder.Encode(info)
 		next(w, r)
 	}
 }
+
 //

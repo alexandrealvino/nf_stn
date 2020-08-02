@@ -2,7 +2,7 @@ create database nf_stn;
 
 use nf_stn;
 
-create table invoices
+create table IF NOT EXISTS invoices
 (
     id             int auto_increment
         primary key,
@@ -16,7 +16,7 @@ create table invoices
     deactivatedAt  datetime default '2020-01-01 00:00:00-00:01' ON UPDATE CURRENT_TIMESTAMP
 );
 
-create table users
+create table IF NOT EXISTS users
 (
     id        int auto_increment
         primary key,
@@ -34,12 +34,3 @@ CREATE INDEX IDX_INVOICES_DOCUMENT_YEAR ON invoices (document,referenceYear);
 CREATE INDEX IDX_INVOICES_MONTH_YEAR ON invoices (referenceMonth,referenceYear);
 
 INSERT INTO nf_stn.users (username, hash) VALUES ("username", "$2a$04$/GvrVH49FLVOVqbtXd99oul2Ma8Nw84dHbYqapq93R042Q98OpEAW");
-# Invoice
-#     ReferenceMonth : INTEGER
-#     ReferenceYear : INTEGER
-#     Document : VARCHAR(14)
-#     Description : VARCHAR(256)
-#     Amount : DECIMAL(16, 2)
-#     IsActive : TINYINT
-#     CreatedAt  : DATETIME
-#     DeactivatedAt : DATETIME

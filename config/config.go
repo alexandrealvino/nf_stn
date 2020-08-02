@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/go-redis/redis/v7"
 	_ "github.com/go-sql-driver/mysql" // importing driver mysql
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // App class object for db instantiation
@@ -31,5 +31,6 @@ func (a *App) ConnectRedis(dsn string) {
 	if err != nil {
 		panic(err)
 	}
+	log.Info("redis client connected")
 }
 //

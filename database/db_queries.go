@@ -5,6 +5,7 @@ import (
 	"nf_stn/config"
 	"nf_stn/entities"
 	"nf_stn/lib"
+	"strings"
 )
 
 //go:generate  go run github.com/golang/mock/mockgen  -package mock -destination=./mock/db_mock.go -source=$GOFILE
@@ -21,18 +22,19 @@ type DataBase interface {
 	UpdateInvoice(invoice entities.Invoice) error
 	PatchInvoice(invoice entities.Invoice) error
 	InvoiceExists(document string) (entities.Invoice, error)
-	Pagination(offset int) ([]entities.Invoice, error)
-	PaginationOrderByMonth(offset int) ([]entities.Invoice, error)
-	PaginationOrderByYear(offset int) ([]entities.Invoice, error)
-	PaginationOrderByDocument(offset int) ([]entities.Invoice, error)
-	PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error)
-	PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error)
-	PaginationByDocument(offset int, document string) ([]entities.Invoice, error)
-	PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error)
-	PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error)
-	PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
-
-	PaginationTEST(query string, args ...interface{}) ([]entities.Invoice, int, error)
+	//Pagination(offset int) ([]entities.Invoice, error)
+	//PaginationOrderByMonth(offset int) ([]entities.Invoice, error)
+	//PaginationOrderByYear(offset int) ([]entities.Invoice, error)
+	//PaginationOrderByDocument(offset int) ([]entities.Invoice, error)
+	//PaginationByMonth(offset, referenceMonth int) ([]entities.Invoice, error)
+	//PaginationByYear(offset, referenceYear int) ([]entities.Invoice, error)
+	//PaginationByDocument(offset int, document string) ([]entities.Invoice, error)
+	//PaginationOrderByMonthYear(offset int) ([]entities.Invoice, error)
+	//PaginationOrderByMonthDocument(offset int) ([]entities.Invoice, error)
+	//PaginationOrderByYearDocument(offset int) ([]entities.Invoice, error)
+	//
+	//PaginationTEST(query string, args ...interface{}) ([]entities.Invoice, int, error)
+	GetInvoices(params entities.SearchParameters) ([]entities.Invoice, int, error)
 }
 
 // MySQL struct
@@ -457,6 +459,120 @@ func (ms *MySQL) PaginationTEST(query string, args ...interface{}) ([]entities.I
 	inv := entities.Invoice{}
 	var invoicesList []entities.Invoice
 	results, err := db.Db.Query(query,args...)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, rowsFound, err
+	}
+	for results.Next() {
+		err := results.Scan(&inv.ID, &inv.ReferenceMonth, &inv.ReferenceYear, &inv.Document, &inv.Description, &inv.Amount, &inv.IsActive, &inv.CreatedAt, &inv.DeactivatedAt)
+		if err != nil {
+			log.Error(err.Error())
+		}
+		invoicesList = append(invoicesList, inv)
+	}
+	lines, _ := db.Db.Query("SELECT FOUND_ROWS();")
+	for lines.Next() {
+		_ = lines.Scan(&rowsFound)
+	}
+	log.Info(rowsFound, " invoices found!")
+	log.Info("successfully got invoice list!")
+	return invoicesList, rowsFound, err
+}
+//
+
+
+// PaginationByMonth returns page list of invoices ordered by month, 10 invoices per page
+func (ms *MySQL) GetInvoices(params entities.SearchParameters) ([]entities.Invoice, int, error) {
+	inv := entities.Invoice{}
+	var invoicesList []entities.Invoice
+	var args []interface{}
+	var rowsFound int
+
+	// setting query strings units
+	qStr := "SELECT SQL_CALC_FOUND_ROWS id,referenceMonth,referenceYear,document,description,amount,isActive,createdAt,deactivatedAt FROM nf_stn.invoices "
+	whereStr := "WHERE "
+	orderByStr := "ORDER BY "
+	closeStr := "LIMIT 10 OFFSET ?;"
+
+	// getting request parameters
+	page := params.Page
+	orderBy := params.OrderBy
+	referenceMonth := params.Month
+	referenceYear := params.Year
+	document := params.Document
+
+	// handling where conditions
+	if referenceMonth!= 0 || referenceYear != 0 || document !="" {
+		qStr += whereStr
+
+		andCount := 0
+		if referenceMonth != 0 {
+			qStr += "referenceMonth=? "
+			args = append(args,referenceMonth)
+			andCount += 1
+		}
+
+		if referenceYear != 0 {
+			if andCount != 0 {
+				qStr += "AND "
+			}
+			qStr += "referenceYear=? "
+			args = append(args, referenceYear)
+			andCount += 1
+		}
+
+		if document != "" {
+			if andCount != 0 {
+				qStr += "AND "
+			}
+			qStr += "document=? "
+			args = append(args, document)
+			andCount += 1
+		}
+	}
+
+	// handling order by conditions
+	if orderBy!="" {
+		qStr += orderByStr
+		vir := strings.Count(orderBy,",")
+		if strings.Contains(orderBy,"referenceMonth") == true {
+			qStr += "referenceMonth "
+			if vir != 0 {
+				qStr += ","
+				vir -= 1
+			}
+		}
+		if strings.Contains(orderBy,"referenceYear") == true {
+			qStr += "referenceYear "
+			if vir != 0 {
+				qStr += ","
+				vir -= 1
+			}
+		}
+		if strings.Contains(orderBy,"document") == true {
+			qStr += "document "
+			if vir != 0 {
+				qStr += ","
+				vir -= 1
+			}
+		}
+	}
+
+	// closing query string
+	qStr += closeStr
+
+	// calculating offset
+	offset := (page-1)*10
+	args = append(args, offset)
+
+	// if none parameter is given, returns whole list
+	if page <= 0 {
+		offset = 0
+		args = []interface{}{offset}
+	}
+
+	// fetching db data
+	results, err := db.Db.Query(qStr,args...)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, rowsFound, err

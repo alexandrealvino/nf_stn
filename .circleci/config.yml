@@ -7,7 +7,7 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.14
-      - image: circleci/mysql:8.0.4
+      - image: circleci/mysql:8.0.21
         environment:
           MYSQL_DRIVER: mysql
           MYSQL_ROOT_PASSWORD: admin

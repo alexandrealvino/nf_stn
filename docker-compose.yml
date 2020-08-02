@@ -1,25 +1,18 @@
-name: Docker Image CI
+version: '3'
+services:
+  mysql:
+    image: 'mysql:8.0.21'
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d/
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testuser
 
-on:
-  push:
-    branches: [ master ]
-
-jobs:
-
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run a one-line script
-        run: echo Hello, world!
-      - name: Login to GitHub Docker Registry
-        run: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag alexandrealvino/nf_stn:latest
-      - name: Docker push
-        run:  docker push robkler/swapi-api:latest
+  redis:
+    image: 'redis:6.0.6'
+    ports:
+      - '6379:6379'

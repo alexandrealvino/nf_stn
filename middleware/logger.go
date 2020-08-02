@@ -22,8 +22,6 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 // Logger logs requests and responses
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//hu:=r.Header.Get("username")
-		//hp:=r.Header.Get("password")
 		au:=r.Header.Get("Authorization")
 		log.Println("-->","header:",au,"URL:",r.URL,"method:", r.Method)
 		lrw := NewLoggingResponseWriter(w)

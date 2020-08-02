@@ -5,7 +5,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"nf_stn/authentication"
-	"strconv"
 )
 
 // au instantiation
@@ -32,7 +31,7 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			_ = encoder.Encode(info)
 			return
 		}
-		userID, err := au.FetchAuth(tokenAuth)
+		_, err = au.FetchAuth(tokenAuth)
 		log.Println("token status: valid token")
 		if err != nil {
 			w.Header().Add("Content-Type", "application/json")
@@ -47,18 +46,18 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			_ = encoder.Encode(info)
 			return
 		}
-		ID := userID
+
 		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		info := map[string]string{
-			"authentication status": "authorized",
-			"userID":			     strconv.Itoa(int(ID)),
-			"method":                r.Method,
-			"content-type":          "application/json",
-		}
-		encoder := json.NewEncoder(w)
-		encoder.SetIndent("", "\t")
-		_ = encoder.Encode(info)
+		//w.WriteHeader(http.StatusOK)
+		//info := map[string]interface{}{
+		//	"authentication status": "authorized",
+		//	"method":                r.Method,
+		//	"content-type":          "application/json",
+		//}
+		//
+		//encoder := json.NewEncoder(w)
+		//encoder.SetIndent("", "\t")
+		//_ = encoder.Encode(info)
 		next(w, r)
 	}
 }

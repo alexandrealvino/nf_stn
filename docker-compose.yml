@@ -5,14 +5,17 @@ services:
     ports:
       - '3306:3306'
     volumes:
-      - ./database:/docker-entrypoint-initdb.d/
+      - schema:/schema.sql
+      - ./schema:/docker-entrypoint-initdb.d/schema.sql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: userdb
-      MYSQL_USER: testuser
-      MYSQL_PASSWORD: testuser
-
-  redis:
-    image: 'redis:6.0.6'
-    ports:
-      - '6379:6379'
+      MYSQL_DATABASE: nf_stn
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: root
+# Volumes
+volumes:
+  schema:
+#  redis:
+#    image: 'redis:6.0.6'
+#    ports:
+#      - '6379:6379'

@@ -156,7 +156,6 @@ func (au *Auth) CreateToken(userid uint64, username string) (*entities.TokenDeta
 	td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
 	td.RefreshUUID = uuid.NewV4().String()
 	//Creating Access Token
-	_ = os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
 	atClaims["access_uuid"] = td.AccessUUID
@@ -169,7 +168,6 @@ func (au *Auth) CreateToken(userid uint64, username string) (*entities.TokenDeta
 		return nil, err
 	}
 	//Creating Refresh Token
-	_ = os.Setenv("REFRESH_SECRET", "mcmvmkmsdnfsdmfdsjf") //this should be in an env file
 	rtClaims := jwt.MapClaims{}
 	rtClaims["refresh_uuid"] = td.RefreshUUID
 	rtClaims["user_id"] = userid

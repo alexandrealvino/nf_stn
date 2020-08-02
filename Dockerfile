@@ -8,7 +8,7 @@ ENV MYSQL_PASSWORD admin
 ENV MYSQL_ROOT_PASSWORD admin
 ENV MYSQL_DATABASE nf_stn
 
-ADD schema.sql /docker-entrypoint-initdb.d
+ADD database/init.sql /docker-entrypoint-initdb.d
 
 # Copy and download dependency using go mod
 COPY go.mod .

@@ -4,18 +4,32 @@ services:
     image: 'mysql:8.0.21'
     ports:
       - '3306:3306'
+    restart: always
     volumes:
-      - schema:/schema.sql
-      - ./schema:/docker-entrypoint-initdb.d/schema.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: nf_stn
-      MYSQL_USER: admin
+
+  redis:
+    image: 'redis:6.0.6'
+    ports:
+      - '6379:6379'
+
+  api:
+    image: 'alexandrealvino/nf_stn:latest'
+    ports:
+      - '8000:8000'
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      MYSQL_DRIVER: mysql
+      MYSQL_USER: root
       MYSQL_PASSWORD: root
-# Volumes
-volumes:
-  schema:
-#  redis:
-#    image: 'redis:6.0.6'
-#    ports:
-#      - '6379:6379'
+      MYSQL_DATABASE: nf_stn
+      URL: 'mysql:3306'
+      REDIS_DSN: 'redis:6379'
+      ACCESS_SECRET: jdnfksdmfksd
+      REFRESH_SECRET: mcmvmkmsdnfsdmfdsjf
+

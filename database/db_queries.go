@@ -45,6 +45,7 @@ func (ms *MySQL) GetInvoices(params entities.SearchParameters) ([]entities.Invoi
 	var invoicesList []entities.Invoice
 	var args []interface{}
 	var rowsFound int
+	var err error
 
 	// setting query strings units
 	qStr := "SELECT SQL_CALC_FOUND_ROWS id,referenceMonth,referenceYear,document,description,amount,isActive,createdAt,deactivatedAt FROM nf_stn.invoices "
@@ -99,6 +100,10 @@ func (ms *MySQL) GetInvoices(params entities.SearchParameters) ([]entities.Invoi
 	if orderBy != "" {
 		qStr += orderByStr
 		vir := strings.Count(orderBy, ",")
+		if vir > 2 {
+			log.Error("parâmetros de ordenação inválidos")
+			return invoicesList, 0, err
+		}
 		if strings.Contains(orderBy, "month") == true {
 			qStr += "referenceMonth "
 			if vir != 0 {

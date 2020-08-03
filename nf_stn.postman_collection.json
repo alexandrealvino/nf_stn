@@ -1,0 +1,518 @@
+{
+	"info": {
+		"_postman_id": "c337034c-4d48-4a91-b004-cdd58987b2b1",
+		"name": "nf_stn",
+		"description": "Desafio stone collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "username",
+						"value": "username",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"login"
+					]
+				},
+				"description": "Request para efetuar o login do usuário, é necessário copiar o \"access_token\" retornado para efetuar requests nas rotas asseguradas.\n\"refresh_token\" é utilizado na rota /api/refresh para renovação do token\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Insert Invoice",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImFmNGM3MzEyLTc5OTQtNDdiNC1hMWZmLWY2MDY4MDIwZGRiMSIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU5NjQ2MDM3NywidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.zvQPxvRa4VdDhyNMXBfslhKOMrf0LsSEVjeEHVLks1g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "username",
+						"value": "username",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"referenceMonth\": 1,\r\n    \"referenceYear\": 2001,\r\n    \"document\": \"00000000000001\",\r\n    \"description\": \"insert\",\r\n    \"amount\": 10.0,\r\n    \"isActive\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api"
+					]
+				},
+				"description": "Request para cadastrar invoice. No banco de dados o valor de \"document\" foi modelado como unique."
+			},
+			"response": []
+		},
+		{
+			"name": "GetInvoices",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "username",
+						"value": "username",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api"
+					],
+					"query": [
+						{
+							"key": "deletes",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "month",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "year",
+							"value": "2000",
+							"disabled": true
+						},
+						{
+							"key": "document",
+							"value": "00000000000044",
+							"disabled": true
+						},
+						{
+							"key": "orderBy",
+							"value": "year,month,document",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Gets whole list of active invoices"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Invoice",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImFmNGM3MzEyLTc5OTQtNDdiNC1hMWZmLWY2MDY4MDIwZGRiMSIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU5NjQ2MDM3NywidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.zvQPxvRa4VdDhyNMXBfslhKOMrf0LsSEVjeEHVLks1g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"referenceMonth\": 1,\r\n    \"referenceYear\": 2021,\r\n    \"document\": \"00000000000001\",\r\n    \"description\": \"update\",\r\n    \"amount\": 10.0,\r\n    \"isActive\": 1,\r\n    \"createdAt\": \"2020-7-20 10:7:37\",\r\n    \"deactivatedAt\": \"2020-7-20 10:7:37\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api"
+					]
+				},
+				"description": "Request para realizar updates."
+			},
+			"response": []
+		},
+		{
+			"name": "Patch Invoice",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImFmNGM3MzEyLTc5OTQtNDdiNC1hMWZmLWY2MDY4MDIwZGRiMSIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU5NjQ2MDM3NywidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.zvQPxvRa4VdDhyNMXBfslhKOMrf0LsSEVjeEHVLks1g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 1,\r\n    \"referenceMonth\": 1,\r\n\t\"referenceYear\": 2021,\r\n    \"amount\": 12,\r\n    \"description\": \"patched\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api"
+					]
+				},
+				"description": "Request para realizar patch."
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Invoice",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImFmNGM3MzEyLTc5OTQtNDdiNC1hMWZmLWY2MDY4MDIwZGRiMSIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU5NjQ2MDM3NywidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.zvQPxvRa4VdDhyNMXBfslhKOMrf0LsSEVjeEHVLks1g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "username",
+						"value": "username",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"1"
+					]
+				},
+				"description": "Request para realizar a deleção lógica de invoices."
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh token",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTcwNjQyNzcsInJlZnJlc2hfdXVpZCI6Ijg4ZGEyZGJmLWU5MTEtNDhkNC04YzRmLTc0MTBmOTgyNDMxOSIsInVzZXJfaWQiOjF9.1Ew6E3Zs7c-oZxYb5ti98qodVa045XcmKegBGWBSXz4",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "username",
+						"value": "username",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/refresh?username=username",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"refresh"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "username"
+						},
+						{
+							"key": "password",
+							"value": "password",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Request para renovação de token. Utiliza a chave \"refresh_token\" retornada na rota de login."
+			},
+			"response": []
+		},
+		{
+			"name": "GetInvoices com parâmetros de busca",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjE3MTQ3ODI0LWU2NzctNGM1NS1iZGRhLWEyNjhkNmU5NDM4ZCIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU5NjQ2MTA5MSwidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.CqVz5f3yk063NxTfdyqakWCeg6B5PLzBDrrZb0WDHk8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "page",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api?page=1&orderBy=document&referenceMonth=1&document=00000000000001&reference year=2001",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "orderBy",
+							"value": "document"
+						},
+						{
+							"key": "referenceMonth",
+							"value": "1"
+						},
+						{
+							"key": "document",
+							"value": "00000000000001"
+						},
+						{
+							"key": "reference year",
+							"value": "2001"
+						}
+					]
+				},
+				"description": "Exemplo de request utilizando os parâmetros de busca."
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjE3MTQ3ODI0LWU2NzctNGM1NS1iZGRhLWEyNjhkNmU5NDM4ZCIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU5NjQ2MTA5MSwidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.CqVz5f3yk063NxTfdyqakWCeg6B5PLzBDrrZb0WDHk8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "username",
+						"value": "username",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"logout"
+					]
+				},
+				"description": "Request logout. Utiliza a chave \"access_token\"."
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -55,7 +55,7 @@ um token novo).
 O deploy da aplicação foi feita na AWS e para acessá-la de qualquer máquina 
 basta acessar o seguinte endereço: http://18.188.115.62:8000
 
-Lembrando que para efetuar o login é necessário adicionar no header do request 
+Lembrando que para efetuar o login é necessário adicionar no header do request do endpoint /api/login 
 os parâmetros "username" = username e "password"= password.
 
 

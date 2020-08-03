@@ -50,4 +50,12 @@ ou "document" respectivamente.
 Segue uma postman collection com exemplos de requests (utilizar 
 um token novo).
 
+**Deploy da aplicação na AWS**
+
+O deploy da aplicação foi feita na AWS e para acessá-la de qualquer máquina 
+basta acessar o seguinte endereço: http://18.188.115.62:8000
+
+Lembrando que para efetuar o login é necessário adicionar no header do request 
+os parâmetros "username" = username e "password"= password.
+
 

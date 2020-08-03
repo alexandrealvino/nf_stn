@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	log "github.com/sirupsen/logrus"
 	"github.com/twinj/uuid"
 	"nf_stn/config"
 	"os"
@@ -29,6 +30,7 @@ type Token interface {
 	CreateToken(userid uint64, username string) (*entities.TokenDetails, error)
 	CreateAuth(userID uint64, td *entities.TokenDetails) error
 	DeleteAuth(givenUUID string) (int64, error)
+	RefreshToken(w http.ResponseWriter, r *http.Request)
 }
 
 // Auth struct
@@ -205,4 +207,101 @@ func (au *Auth) DeleteAuth(givenUUID string) (int64, error) {
 	return deleted, nil
 }
 
-//
+// RefreshToken refreshes the given token
+func (au *Auth) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	mapToken := map[string]string{}
+	bearToken := r.Header.Get("Authorization")
+	username := r.FormValue("username")
+	mapToken["refresh_token"] = bearToken
+	refreshToken := mapToken["refresh_token"]
+	strArr := strings.Split(bearToken, " ")
+	if len(strArr) == 2 {
+		refreshToken = strArr[1]
+	}
+
+	//verify the token
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		//Make sure that the token method conform to "SigningMethodHMAC"
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("REFRESH_SECRET")), nil
+	})
+	//if there is an error, the token must have expired
+	if err != nil {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode("refresh token expired")
+		return
+	}
+	//is token valid?
+	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		log.Error(err)
+	}
+	//Since token is valid, get the uuid:
+	claims, ok := token.Claims.(jwt.MapClaims) //the token claims should conform to MapClaims
+	if ok && token.Valid {
+		refreshUuid, ok := claims["refresh_uuid"].(string) //convert the interface to string
+		if !ok {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			log.Error(err)
+			return
+		}
+		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			log.Error(err)
+			return
+		}
+		//Delete the previous Refresh Token
+		deleted, delErr := au.DeleteAuth(refreshUuid)
+		if delErr != nil || deleted == 0 { //if any goes wrong
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			info := map[string]string{
+				"authentication status": "unauthorized",
+				"method":                r.Method,
+				"content-type":          "application/json",
+			}
+			encoder := json.NewEncoder(w)
+			encoder.SetIndent("", "\t")
+			_ = encoder.Encode(info)
+			log.Error(err)
+			return
+		}
+		//Create new pairs of refresh and access tokens
+		ts, createErr := au.CreateToken(userId,username)
+		if  createErr != nil {
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			log.Error(createErr.Error())
+			return
+		}
+		//save the tokens metadata to redis
+		saveErr := au.CreateAuth(userId, ts)
+		if saveErr != nil {
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			log.Error(saveErr.Error())
+			return
+		}
+		tokens := map[string]string{
+			"access_token":  ts.AccessToken,
+			"refresh_token": ts.RefreshToken,
+		}
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode(tokens)
+	} else {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "\t")
+		_ = encoder.Encode("refresh expired")
+	}
+}

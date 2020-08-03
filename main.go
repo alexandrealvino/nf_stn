@@ -42,6 +42,7 @@ func main() {
 
 	router.HandleFunc("/api/login", routes.GenerateToken).Methods("POST") // generates token for authenticated user
 	router.HandleFunc("/api/logout", tk.Logout).Methods("POST")           // logout user
+	router.HandleFunc("/api/refresh", tk.RefreshToken).Methods("POST")	// refreshes token
 
 	router.Handle("/metrics", promhttp.Handler()) // get metrics for future metrics handler
 

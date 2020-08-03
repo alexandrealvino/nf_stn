@@ -35,5 +35,6 @@ de dados já é iniciado com uma tabela de usuários que possui uma linha
 contendo um "username" e uma "hash" gerada a partir da senha "password".
 A aplicação então compara as hashs e autoriza ou não o usuário. Caso 
 o usuário seja autenticado, a aplicação retorna um token para ser utilizado 
-no header de autenticação para as demais rotas. Tal token fica armazenado no
-servidor do Redis para verificações.
+no header de autenticação para as demais rotas. Tal token tem validade de 15min
+podendo ser atualizado, e fica armazenado no servidor do Redis para 
+futuras verificações.

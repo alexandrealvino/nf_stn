@@ -1,6 +1,6 @@
 **NF_STN**
 
-API REST desenvolvida em Go para com as seguintes funcionalidades:
+API REST desenvolvida em Go com as seguintes funcionalidades:
 
 - Listar invoices (notas fiscais) com paginação
 

@@ -12,7 +12,6 @@ import (
 	"nf_stn/entities"
 	"nf_stn/lib"
 	"strconv"
-	//"github.com/golang/mock"
 )
 
 // Routes struct
@@ -264,7 +263,6 @@ func (rr *Routes) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	var err error
 	u.Username = r.Header.Get("username")
 	pwd := r.Header.Get("password")
-	//u.Hash = r.Header.Get("password")
 	user.ID, user.Username, user.Hash, err = rr.Db.GetUser(u.Username)
 	if err != nil {
 		log.Error("user status: not found!")

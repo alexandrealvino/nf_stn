@@ -30,7 +30,7 @@ type Token interface {
 	CreateToken(userid uint64, username string) (*entities.TokenDetails, error)
 	CreateAuth(userID uint64, td *entities.TokenDetails) error
 	DeleteAuth(givenUUID string) (int64, error)
-	RefreshToken(w http.ResponseWriter, r *http.Request)
+	//RefreshToken(w http.ResponseWriter, r *http.Request)
 }
 
 // Auth struct

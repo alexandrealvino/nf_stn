@@ -5,10 +5,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"net/http"
 	"nf_stn/adapter"
-	"nf_stn/entities"
-	//"nf_stn/adapter"
 	tokenMock "nf_stn/authentication/mock"
-	//"nf_stn/entities"
+	"nf_stn/entities"
 	"testing"
 )
 

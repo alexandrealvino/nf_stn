@@ -1,61 +1,59 @@
-**NF_STN**
+** NF_STN **
 
-API REST desenvolvida em Go com as seguintes funcionalidades:
+REST API developed in Go with the following features:
 
-- Listar invoices (notas fiscais) com paginação
+- List invoices with invoices
 
-- Buscar invoice por documento
+- Search invoice by document
 
-- Cadastrar invoice
+- Register invoice
 
-- Deleção lógica de invoice
+- Logical invoice deletion
 
-- Listar invoices com filtros por mês, ano e documento
+- List invoices with filters by month, year and document
 
-- Listar invoices com ordenação por mês, ano, documento ou combinações desses
+- List invoices sorted by month, year, document or combinations of these
 
-Persistência desenvolvida utilizando o banco de dados MySQL.
+Persistence developed using the MySQL database.
 
-Autenticação de rotas por token de aplicação. 
+Route authentication by application token.
 
-**Como rodar o código**
+** How to run the code **
 
-Para rodar a aplicação basta executar o seguinte comando no seu terminal:
+To run the application just run the following command on your terminal:
 
 docker-compose up -d
 
-Executando os testes:
+Running the tests:
 
-go test ./...
+go test. / ...
 
-**Funcionamento da API**
+** How the API works **
 
-Para acessar os endpoints é necessário realizar o login do usuário, o banco 
-de dados já é iniciado com uma tabela de usuários que possui uma linha 
-contendo um "username" e uma "hash" gerada a partir da senha "password".
-A aplicação então compara as hashs e autoriza ou não o usuário. Caso 
-o usuário seja autenticado, a aplicação retorna um token do tipo "Bearer Token" para ser utilizado 
-no header de autenticação para as demais rotas. Tal token tem validade de 15min
-podendo ser renovado na endpoint api/refresh, e fica armazenado no servidor do Redis para 
-futuras verificações.
+To access the endpoints it is necessary to login the user, the bank
+data is already started with a user table that has a row
+containing a "username" and a "hash" generated from the password "password".
+The application then compares the hashes and authorizes the user. Case
+the user is authenticated, the application returns a token of the type "Bearer Token" to be used
+in the authentication header for the other routes. Such token is valid for 15 minutes
+can be renewed at the endpoint api / refresh, and is stored on the Redis server for
+future checks.
 
-**Parâmetros de busca**
+** Search parameters **
 
-Para ordenação utilizar o parâmetro "orderBy" no request, com as seguintes opções de ordenação: 
-"document", "year, "month" ou uma composição delas separadas por vírgulas.
+For ordering use the parameter "orderBy" in the request, with the following ordering options:
+"document", "year," month "or a composition separated by commas.
 
-Para busca por mês, ano ou documento utilizar os parâmetros "month", "year" 
-ou "document" respectivamente.
+To search by month, year or document use the parameters "month", "year"
+or "document" respectively.
 
-Segue uma postman collection com exemplos de requests (utilizar 
-um token novo).
+Following is a postman collection with examples of requests (use
+a new token).
 
-**Deploy da aplicação na AWS**
+** Deploy the application on AWS **
 
-O deploy da aplicação foi feita na AWS e para acessá-la de qualquer máquina 
-basta acessar o seguinte endereço: http://18.188.115.62:8000
+The application was deployed on AWS and to access it from any machine
+just access the following address: http://18.188.115.62:8000 (instance not up anymore)
 
-Lembrando que para efetuar o login é necessário adicionar no header do request do endpoint /api/login 
-os parâmetros "username" = username e "password"= password.
-
-
+Remembering that to log in you need to add in the request header of the endpoint / api / login
+the parameters "username" = username and "password" = password.

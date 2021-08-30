@@ -1,15 +1,15 @@
 package main
 
 import (
+	"github.com/alexandrealvino/nf_stn/adapter"
+	"github.com/alexandrealvino/nf_stn/authentication"
+	"github.com/alexandrealvino/nf_stn/config"
+	"github.com/alexandrealvino/nf_stn/database"
+	"github.com/alexandrealvino/nf_stn/middleware"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"nf_stn/adapter"
-	"nf_stn/authentication"
-	"nf_stn/config"
-	"nf_stn/database"
-	"nf_stn/middleware"
 )
 
 func main() {
